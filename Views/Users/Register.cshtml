@@ -1,0 +1,55 @@
+@model WebApplication2.Models.User
+@{
+    ViewData["Title"] = "Register";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h1 class="h3 text-light">Register</h1>
+
+            <form asp-action="Create" method="post" class="mt-3">
+                @Html.AntiForgeryToken()
+
+                <div class="mb-3">
+                    <label asp-for="Name" class="form-label text-light"></label>
+                    <input asp-for="Name" class="form-control" />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label text-light"></label>
+                    <input asp-for="Email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label text-light"></label>
+                    <input asp-for="Password" class="form-control" type="password" />
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Cnic" class="form-label text-light"></label>
+                    <input asp-for="Cnic" class="form-control" />
+                    <span asp-validation-for="Cnic" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="PhoneNum" class="form-label text-light"></label>
+                    <input asp-for="PhoneNum" class="form-control" />
+                    <span asp-validation-for="PhoneNum" class="text-danger"></span>
+                </div>
+
+                <div class="form-check mb-3">
+                    <input asp-for="ActiveUser" class="form-check-input" />
+                    <label asp-for="ActiveUser" class="form-check-label text-light"></label>
+                    <span asp-validation-for="ActiveUser" class="text-danger"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Register</button>
+                <a asp-action="Login" class="btn btn-link ms-2 text-light">Already have an account? Login</a>
+            </form>
+        </div>
+    </div>
+</div>

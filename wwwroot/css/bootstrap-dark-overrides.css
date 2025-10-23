@@ -1,0 +1,66 @@
+/* Global dark overrides to set dark background to #050505 and ensure high contrast across app */
+:root {
+  --global-dark: #050505;
+  --global-dark-2: #0b0b0b;
+  --global-border: #222222;
+  --global-text: #e9eef2;
+}
+
+/* Apply background and text globally */
+html, body {
+  background-color: var(--global-dark) !important;
+  color: var(--global-text) !important;
+}
+
+/* Ensure body utility classes do not override dark background */
+.bg-dark, .bg-body, .bg-white, .bg-light {
+  background-color: var(--global-dark) !important;
+  color: var(--global-text) !important;
+}
+
+/* Navbar */
+.navbar, .navbar-dark.bg-dark {
+  background-color: var(--global-dark) !important;
+  color: var(--global-text) !important;
+}
+.navbar .nav-link, .navbar .navbar-brand { color: var(--global-text) !important; }
+
+/* Cards, modals, dropdowns, popovers */
+.card, .modal-content, .dropdown-menu, .popover {
+  background-color: var(--global-dark) !important;
+  color: var(--global-text) !important;
+  border-color: var(--global-border) !important;
+}
+
+/* Tables */
+.table, .table-bordered, .table-striped {
+  background-color: transparent !important;
+  color: var(--global-text) !important;
+  border-color: var(--global-border) !important;
+}
+.table th, .table td { border-color: var(--global-border) !important; }
+.table thead th { background-color: var(--global-dark) !important; color: var(--global-text) !important; }
+
+/* Table dark class */
+.table-dark, .table.table-dark { background-color: transparent !important; color: var(--global-text) !important; }
+
+/* Forms */
+.form-control, .form-select, textarea.form-control {
+  background-color: var(--global-dark-2) !important;
+  color: var(--global-text) !important;
+  border-color: var(--global-border) !important;
+}
+.form-control::placeholder { color: #9aa4ae !important; }
+
+/* Alerts */
+.alert { background-color: var(--global-dark-2) !important; color: var(--global-text) !important; border-color: var(--global-border) !important; }
+
+/* Buttons and links */
+.btn-secondary { background-color: #2a2a2a !important; border-color: #2a2a2a !important; color: var(--global-text) !important; }
+.btn-link, a.nav-link, .btn-link.nav-link { color: var(--global-text) !important; }
+
+/* Footer links */
+.footer a { color: #cfe8ff !important; }
+
+/* Focus states */
+.form-control:focus, .form-select:focus { box-shadow: 0 0 0 .2rem rgba(75,136,199,.15) !important; border-color: #4b88c7 !important; }

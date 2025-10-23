@@ -1,0 +1,99 @@
+# .gitignore for a .NET 8 / Razor Pages project
+# See https://learn.microsoft.com/visualstudio/git/ignore-files for details
+
+# Build artifacts
+bin/
+obj/
+out/
+artifacts/
+
+# Publish output
+publish/
+**/bin/**/publish/
+**/obj/**/publish/
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Rider
+.idea/
+*.sln.iml
+
+# VS Code
+.vscode/
+
+# NuGet
+*.nupkg
+packages/
+.nuget/
+
+# Dotnet local files
+project.lock.json
+project.fragment.lock.json
+global.json
+
+# User secrets (do not commit secret files)
+secrets.json
+
+# Configuration overrides that often contain local secrets
+appsettings.*.Local.json
+appsettings.*.Secrets.json
+
+# Logs
+*.log
+logs/
+
+# Database files
+*.mdf
+*.ldf
+*.sqlite
+*.db
+*.db-shm
+*.db-wal
+
+# OS files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# Node/npm
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.orig
+
+# JetBrains Rider caches
+.idea/
+*.sln.iml
+
+# Publish artifacts from CI
+**/publish/
+
+# Ignore compiled Razor views
+*.compiled
+
+# Certificates
+*.pfx
+
+# Visual Studio Code workspace
+*.code-workspace
+
+# Ensure user-specific files aren't committed
+*.userprefs
+*.user
+
+# Rider and other IDE caches
+.idea/
+*.iml
+
+# If you use Azure Functions or other tooling add patterns as needed
