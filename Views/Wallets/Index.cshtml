@@ -1,0 +1,337 @@
+﻿@model WebApplication2.Models.Wallet
+
+@{
+    ViewData["Title"] = "My Wallet";
+
+    // Get user's stocks for display
+    var userStocks = Model.User?.Stocks?.ToList() ?? new List<WebApplication2.Models.Stock>();
+
+    // Calculate portfolio statistics
+    int totalInvestment = 0;
+    int currentValue = 0;
+
+    foreach (var stock in userStocks)
+    {
+        currentValue += stock.Price;
+        totalInvestment += stock.Price; // Adjust if you have purchase price
+    }
+
+    int profitLoss = currentValue - totalInvestment;
+}
+
+<style>
+    body {
+        background: linear-gradient(135deg, #050505, #0a1a2f);
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .wallet-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .wallet-card {
+        background: linear-gradient(145deg, #0a1a2f, #050505);
+        border-radius: 20px;
+        box-shadow: 0 8px 25px rgba(30, 144, 255, 0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: 1px solid #1c2a3d;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+        .wallet-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 35px rgba(30, 144, 255, 0.18);
+        }
+
+    .balance-display {
+        font-size: 3rem;
+        font-weight: bold;
+        color: #1e90ff;
+        text-shadow: 0 0 10px rgba(30, 144, 255, 0.3);
+    }
+
+    .stat-card {
+        background: linear-gradient(145deg, #122b4a, #0a1a2f);
+        border-radius: 15px;
+        padding: 1.5rem;
+        border: 1px solid #1c2a3d;
+        transition: transform 0.2s ease;
+    }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+
+    .stat-label {
+        color: #9aa4ae;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .stat-value {
+        font-size: 1.8rem;
+        font-weight: bold;
+        color: #e9eef2;
+    }
+
+    .profit {
+        color: #28a745;
+    }
+
+    .loss {
+        color: #dc3545;
+    }
+
+    .stock-table {
+        background: linear-gradient(145deg, #0a1a2f, #050505);
+        border-radius: 15px;
+        overflow: hidden;
+        border: 1px solid #1c2a3d;
+    }
+
+        .stock-table thead {
+            background: #122b4a;
+        }
+
+        .stock-table th {
+            color: #1e90ff;
+            font-weight: 600;
+            padding: 1rem;
+            border-bottom: 2px solid #1c2a3d;
+        }
+
+        .stock-table td {
+            padding: 1rem;
+            color: #e9eef2;
+            border-bottom: 1px solid #1c2a3d;
+        }
+
+        .stock-table tbody tr:hover {
+            background: rgba(30, 144, 255, 0.05);
+        }
+
+    .add-funds-btn {
+        border-radius: 30px;
+        padding: 12px 35px;
+        font-size: 1.1rem;
+        background: #1e90ff;
+        border: none;
+        color: white;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(30, 144, 255, 0.2);
+    }
+
+        .add-funds-btn:hover {
+            background: #0073e6;
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(30, 144, 255, 0.3);
+        }
+
+    .modal-content {
+        background: linear-gradient(145deg, #0a1a2f, #050505);
+        border: 1px solid #1c2a3d;
+        border-radius: 20px;
+    }
+
+    .modal-header {
+        border-bottom: 1px solid #1c2a3d;
+    }
+
+    .modal-footer {
+        border-top: 1px solid #1c2a3d;
+    }
+
+    .form-control {
+        background: #122b4a;
+        border: 1px solid #1c2a3d;
+        color: #e9eef2;
+        border-radius: 10px;
+        padding: 0.75rem;
+    }
+
+        .form-control:focus {
+            background: #122b4a;
+            border-color: #1e90ff;
+            color: #e9eef2;
+            box-shadow: 0 0 0 0.2rem rgba(30, 144, 255, 0.18);
+        }
+
+    .alert {
+        border-radius: 15px;
+        border: 1px solid #1c2a3d;
+    }
+
+    .page-title {
+        color: #1e90ff;
+        font-weight: bold;
+        margin-bottom: 2rem;
+        text-shadow: 0 0 10px rgba(30, 144, 255, 0.2);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #9aa4ae;
+    }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: #1e90ff;
+            opacity: 0.3;
+            margin-bottom: 1rem;
+        }
+</style>
+
+<div class="wallet-container">
+    <h1 class="page-title display-4">My Wallet</h1>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Balance Card -->
+    <div class="wallet-card text-center">
+        <p class="stat-label mb-2">Current Balance</p>
+        <div class="balance-display">$@Model.Balance.ToString("N0")</div>
+        <p class="text-muted mt-2">Last updated: @Model.LastUpdated.ToString("MMM dd, yyyy hh:mm tt")</p>
+        <button type="button" class="btn add-funds-btn mt-3" data-bs-toggle="modal" data-bs-target="#addFundsModal">
+            + Add Funds
+        </button>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="stat-card text-center">
+                <p class="stat-label">Total Investment</p>
+                <div class="stat-value">$@totalInvestment.ToString("N0")</div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="stat-card text-center">
+                <p class="stat-label">Current Value</p>
+                <div class="stat-value">$@currentValue.ToString("N0")</div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="stat-card text-center">
+                <p class="stat-label">Profit / Loss</p>
+                <div class="stat-value @(profitLoss >= 0 ? "profit" : "loss")">
+                    @(profitLoss >= 0 ? "+" : "")$@profitLoss.ToString("N0")
+                </div>
+                @if (totalInvestment > 0)
+                {
+                    var percentage = (profitLoss / (double)totalInvestment) * 100;
+                    <p class="text-muted mt-2">@percentage.ToString("F2")%</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Stocks Portfolio -->
+    <div class="wallet-card">
+        <h3 class="mb-4" style="color: #1e90ff;">My Stocks Portfolio</h3>
+
+        @if (userStocks != null && userStocks.Any())
+        {
+            <div class="table-responsive">
+                <table class="table stock-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Stock ID</th>
+                            <th>Company Name</th>
+                            <th>Current Price</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var stock in userStocks)
+                        {
+                            <tr>
+                                <td>#@stock.StockId</td>
+                                <td><strong>@stock.CompanyName</strong></td>
+                                <td>$@stock.Price.ToString("N0")</td>
+                                <td>
+                                    <a href="#" class="btn btn-sm btn-outline-primary">View Details</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <div class="mb-3">📊</div>
+                <h5>No Stocks Yet</h5>
+                <p>Start investing to see your portfolio here.</p>
+                <a href="#" class="btn btn-primary mt-3">Browse Stocks</a>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Add Funds Modal -->
+<div class="modal fade" id="addFundsModal" tabindex="-1" aria-labelledby="addFundsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addFundsModalLabel" style="color: #1e90ff;">Add Funds to Wallet</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-controller="Wallets" asp-action="AddFunds" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="amount" class="form-label">Amount ($)</label>
+                        <input type="number" class="form-control" id="amount" name="amount"
+                               placeholder="Enter amount" min="1" required>
+                        <div class="form-text" style="color: #9aa4ae;">Minimum amount: $1</div>
+                    </div>
+
+                    <div class="quick-amounts mb-3">
+                        <label class="form-label">Quick Select:</label>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button type="button" class="btn btn-sm btn-outline-primary quick-amount" data-amount="100">$100</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary quick-amount" data-amount="500">$500</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary quick-amount" data-amount="1000">$1,000</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary quick-amount" data-amount="5000">$5,000</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Funds</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Quick amount selection
+        document.querySelectorAll('.quick-amount').forEach(button => {
+            button.addEventListener('click', function() {
+                const amount = this.getAttribute('data-amount');
+                document.getElementById('amount').value = amount;
+            });
+        });
+    </script>
+}

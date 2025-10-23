@@ -2,6 +2,10 @@
 using Microsoft.EntityFrameworkCore;
 using WebApplication2.Data;
 using WebApplication2.Models;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using System;
 
 namespace WebApplication2.Controllers
 {
@@ -14,50 +18,97 @@ namespace WebApplication2.Controllers
             _context = context;
         }
 
-        // GET: /Wallets
+        // GET: Wallets/Index
         public async Task<IActionResult> Index()
         {
-            var list = await _context.Wallets.ToListAsync();
-            return Json(list);
+            // Check if user is authenticated
+            if (!User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Login", "Users");
+            }
+
+            // Get the current user's ID from claims
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+            {
+                return RedirectToAction("Login", "Users");
+            }
+
+            // Get user with wallet and stocks
+            var user = await _context.Users
+                .Include(u => u.Wallets)
+                .Include(u => u.Stocks)
+                .FirstOrDefaultAsync(u => u.UserId == userId);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            // Get or create wallet for user
+            var wallet = user.Wallets?.FirstOrDefault();
+            if (wallet == null)
+            {
+                wallet = new Wallet
+                {
+                    UserId = userId,
+                    Balance = 0,
+                    LastUpdated = DateTime.Now
+                };
+                _context.Wallets.Add(wallet);
+                await _context.SaveChangesAsync();
+            }
+
+            // Pass the wallet to the view
+            return View(wallet);
         }
 
-        // GET: /Wallets/Details/5
-        public async Task<IActionResult> Details(int id)
-        {
-            var wallet = await _context.Wallets.FindAsync(id);
-            if (wallet == null) return NotFound();
-            return Json(wallet);
-        }
-
-        // POST: /Wallets/Create
+        // POST: Wallets/AddFunds
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] Wallet wallet)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddFunds(int amount)
         {
-            if (wallet == null) return BadRequest();
-            _context.Wallets.Add(wallet);
-            await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(Details), new { id = wallet.WalletId }, wallet);
-        }
+            if (!User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Login", "Users");
+            }
 
-        // POST: /Wallets/Edit/5
-        [HttpPost]
-        public async Task<IActionResult> Edit(int id, [FromBody] Wallet wallet)
-        {
-            if (wallet == null || id != wallet.WalletId) return BadRequest();
-            _context.Entry(wallet).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-            return NoContent();
-        }
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+            {
+                return RedirectToAction("Login", "Users");
+            }
 
-        // POST: /Wallets/Delete/5
-        [HttpPost]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var wallet = await _context.Wallets.FindAsync(id);
-            if (wallet == null) return NotFound();
-            _context.Wallets.Remove(wallet);
+            if (amount <= 0)
+            {
+                TempData["Error"] = "Please enter a valid amount greater than 0.";
+                return RedirectToAction("Index");
+            }
+
+            var wallet = await _context.Wallets
+                .FirstOrDefaultAsync(w => w.UserId == userId);
+
+            if (wallet == null)
+            {
+                wallet = new Wallet
+                {
+                    UserId = userId,
+                    Balance = amount,
+                    LastUpdated = DateTime.Now
+                };
+                _context.Wallets.Add(wallet);
+            }
+            else
+            {
+                wallet.Balance += amount;
+                wallet.LastUpdated = DateTime.Now;
+                _context.Wallets.Update(wallet);
+            }
+
             await _context.SaveChangesAsync();
-            return NoContent();
+
+            TempData["Success"] = $"Successfully added ${amount:N0} to your wallet!";
+            return RedirectToAction("Index");
         }
     }
 }

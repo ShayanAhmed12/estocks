@@ -34,6 +34,9 @@
                                 <a class="nav-link text-light" asp-controller="Dividend" asp-action="Index">Dividends</a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link text-light" asp-controller="Wallets" asp-action="Index">Wallet</a>
+                            </li>
+                            <li class="nav-item">
                                 <form asp-controller="Users" asp-action="Logout" method="post" class="d-inline">
                                     @Html.AntiForgeryToken()
                                     <button type="submit" class="btn btn-link nav-link text-light">Logout</button>
