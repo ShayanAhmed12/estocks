@@ -1,66 +1,168 @@
-/* Global dark overrides to set dark background to #050505 and ensure high contrast across app */
+﻿/* 🌙 Global Dark Blue + Black Theme */
 :root {
-  --global-dark: #050505;
-  --global-dark-2: #0b0b0b;
-  --global-border: #222222;
-  --global-text: #e9eef2;
+    --global-black: #050505;
+    --global-dark-blue: #0a1a2f;
+    --global-mid-blue: #122b4a;
+    --global-accent: #1e90ff;
+    --global-border: #1c2a3d;
+    --global-text: #e9eef2;
 }
 
-/* Apply background and text globally */
+/* Background & text globally */
 html, body {
-  background-color: var(--global-dark) !important;
-  color: var(--global-text) !important;
-}
-
-/* Ensure body utility classes do not override dark background */
-.bg-dark, .bg-body, .bg-white, .bg-light {
-  background-color: var(--global-dark) !important;
-  color: var(--global-text) !important;
+    background: linear-gradient(135deg, var(--global-black), var(--global-dark-blue)) !important;
+    color: var(--global-text) !important;
+    font-family: 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 /* Navbar */
-.navbar, .navbar-dark.bg-dark {
-  background-color: var(--global-dark) !important;
-  color: var(--global-text) !important;
+.navbar, .navbar-dark, .bg-dark {
+    background: linear-gradient(to right, var(--global-black), var(--global-dark-blue)) !important;
+    border-bottom: 1px solid var(--global-border) !important;
 }
-.navbar .nav-link, .navbar .navbar-brand { color: var(--global-text) !important; }
+
+    .navbar .nav-link,
+    .navbar .navbar-brand {
+        color: var(--global-text) !important;
+        transition: color 0.2s ease, text-shadow 0.2s ease;
+    }
+
+        .navbar .nav-link:hover,
+        .navbar .navbar-brand:hover {
+            color: var(--global-accent) !important;
+            text-shadow: 0 0 6px rgba(30,144,255,0.25);
+        }
 
 /* Cards, modals, dropdowns, popovers */
-.card, .modal-content, .dropdown-menu, .popover {
-  background-color: var(--global-dark) !important;
-  color: var(--global-text) !important;
-  border-color: var(--global-border) !important;
+.card,
+.modal-content,
+.dropdown-menu,
+.popover,
+.welcome-box,
+.policy-box {
+    background: linear-gradient(145deg, var(--global-dark-blue), var(--global-black)) !important;
+    color: var(--global-text) !important;
+    border: 1px solid var(--global-border) !important;
+    box-shadow: 0 0 25px rgba(30,144,255,0.08);
+    border-radius: 20px;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+    .card:hover,
+    .welcome-box:hover,
+    .policy-box:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0 35px rgba(30,144,255,0.18);
+    }
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+    color: var(--global-accent);
+}
+
+/* Buttons */
+.btn-primary {
+    background: var(--global-accent) !important;
+    border-color: var(--global-accent) !important;
+    color: #fff !important;
+    border-radius: 30px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+    .btn-primary:hover {
+        background: #0073e6 !important;
+        transform: scale(1.03);
+    }
+
+    .btn-primary:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 0.25rem rgba(30,144,255,0.22) !important;
+    }
+
+/* Forms */
+.form-control,
+.form-select {
+    background-color: var(--global-mid-blue) !important;
+    color: var(--global-text) !important;
+    border: 1px solid var(--global-border) !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+    .form-control::placeholder {
+        color: #9aa4ae !important;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: var(--global-accent) !important;
+        box-shadow: 0 0 0 0.2rem rgba(30,144,255,0.18) !important;
+    }
+
+/* Accessibility: visible focus */
+:focus-visible {
+    outline: 3px solid rgba(30,144,255,0.12);
+    outline-offset: 2px;
 }
 
 /* Tables */
-.table, .table-bordered, .table-striped {
-  background-color: transparent !important;
-  color: var(--global-text) !important;
-  border-color: var(--global-border) !important;
+.table {
+    background: transparent !important;
+    color: var(--global-text) !important;
+    border-color: var(--global-border) !important;
+    border-collapse: separate;
 }
-.table th, .table td { border-color: var(--global-border) !important; }
-.table thead th { background-color: var(--global-dark) !important; color: var(--global-text) !important; }
 
-/* Table dark class */
-.table-dark, .table.table-dark { background-color: transparent !important; color: var(--global-text) !important; }
+    .table th,
+    .table td {
+        border-color: var(--global-border) !important;
+    }
 
-/* Forms */
-.form-control, .form-select, textarea.form-control {
-  background-color: var(--global-dark-2) !important;
-  color: var(--global-text) !important;
-  border-color: var(--global-border) !important;
-}
-.form-control::placeholder { color: #9aa4ae !important; }
+    .table thead th {
+        background-color: var(--global-mid-blue) !important;
+        color: var(--global-text) !important;
+    }
 
 /* Alerts */
-.alert { background-color: var(--global-dark-2) !important; color: var(--global-text) !important; border-color: var(--global-border) !important; }
+.alert {
+    background: var(--global-mid-blue) !important;
+    color: var(--global-text) !important;
+    border-color: var(--global-border) !important;
+}
 
-/* Buttons and links */
-.btn-secondary { background-color: #2a2a2a !important; border-color: #2a2a2a !important; color: var(--global-text) !important; }
-.btn-link, a.nav-link, .btn-link.nav-link { color: var(--global-text) !important; }
+/* Footer */
+footer {
+    color: #9aa4ae;
+}
 
-/* Footer links */
-.footer a { color: #cfe8ff !important; }
+    footer strong {
+        color: var(--global-accent);
+    }
 
-/* Focus states */
-.form-control:focus, .form-select:focus { box-shadow: 0 0 0 .2rem rgba(75,136,199,.15) !important; border-color: #4b88c7 !important; }
+    footer a {
+        color: var(--global-accent);
+        transition: color 0.15s ease, text-shadow 0.15s ease;
+    }
+
+/* Links */
+a {
+    color: var(--global-accent);
+    transition: color 0.15s ease, text-shadow 0.15s ease;
+    text-decoration-skip-ink: auto;
+}
+
+    a:hover,
+    a:focus {
+        color: var(--global-accent);
+        text-shadow: 0 0 6px rgba(30,144,255,0.35);
+    }
+
+/* Small helpers */
+.visually-hidden-focusable:focus {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+}
