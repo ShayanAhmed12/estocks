@@ -3,55 +3,51 @@
 }
 
 <style>
-    body {
-        background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    /* Scoped to the privacy page only to avoid overriding shared layout styles */
+    .privacy-page {
+
         font-family: 'Segoe UI', sans-serif;
+        padding-top: 3rem;
+        padding-bottom: 3rem;
     }
 
-    .policy-box {
+    .privacy-page .policy-box {
         background: #ffffff;
         border-radius: 20px;
         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
         padding: 40px;
-        margin-top: 50px;
+        margin-top: 0;
         transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
-        .policy-box:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
-        }
+    .privacy-page .policy-box:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+    }
 
-    h1 {
+    .privacy-page h1 {
         color: #0d6efd;
         font-weight: 700;
         margin-bottom: 25px;
     }
 
-    p, li {
-        color:white;
+    /* Allow the policy-box to inherit color (so utility classes like text-light can control it) */
+    .privacy-page .policy-box p,
+    .privacy-page .policy-box li {
+        color: inherit;
         line-height: 1.7;
         font-size: 1.05rem;
     }
 
-    ul {
+    .privacy-page ul {
         text-align: left;
         margin: 0 auto;
         max-width: 700px;
     }
-
-    footer {
-        color:white;
-        margin-top: 50px;
-    }
-
-        footer strong {
-            color:white;
-        }
 </style>
 
-<div class="container text-center">
-    <div class="policy-box">
+<div class="container text-center privacy-page">
+    <div class="policy-box mx-auto text-light" style="max-width:900px;">
         <h1>@ViewData["Title"]</h1>
         <p>
             At <strong>E-Stocks</strong>, we respect your privacy and are committed to protecting your personal data.
@@ -71,11 +67,4 @@
         </p>
     </div>
 
-    <footer class="text-muted">
-        <hr class="my-4" />
-        <p class="mb-0">
-            Made by: Hassan Nafees, Shayan Ahmed, and Mohid Raheel
-        </p>
-        <p class="small">&copy; @DateTime.Now.Year E-Stocks Project</p>
-    </footer>
 </div>
