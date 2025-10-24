@@ -1,0 +1,359 @@
+﻿@model IEnumerable<WebApplication2.Models.Fund>
+
+@{
+    ViewData["Title"] = "Available Funds";
+}
+
+<style>
+    body {
+        background: linear-gradient(135deg, #050505, #0a1a2f);
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .funds-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .page-title {
+        color: #1e90ff;
+        font-weight: bold;
+        margin-bottom: 2rem;
+        text-shadow: 0 0 10px rgba(30, 144, 255, 0.2);
+    }
+
+    .subtitle {
+        color: #9aa4ae;
+        font-size: 1.1rem;
+        margin-bottom: 3rem;
+    }
+
+    .table-card {
+        background: linear-gradient(145deg, #0a1a2f, #050505);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 8px 25px rgba(30, 144, 255, 0.1);
+        border: 1px solid #1c2a3d;
+    }
+
+    .table-header {
+        background: linear-gradient(135deg, #122b4a, #0a1a2f);
+        padding: 1.5rem 2rem;
+        border-bottom: 2px solid #1c2a3d;
+    }
+
+        .table-header h2 {
+            color: #1e90ff;
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+    .funds-table {
+        width: 100%;
+        margin: 0;
+    }
+
+        .funds-table thead {
+            background: #122b4a;
+        }
+
+        .funds-table th {
+            color: #1e90ff;
+            font-weight: 600;
+            padding: 1.2rem 1.5rem;
+            border-bottom: 2px solid #1c2a3d;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+        }
+
+        .funds-table td {
+            padding: 1.5rem;
+            color: #e9eef2;
+            border-bottom: 1px solid #1c2a3d;
+            vertical-align: middle;
+        }
+
+        .funds-table tbody tr {
+            transition: all 0.2s ease;
+        }
+
+            .funds-table tbody tr:hover {
+                background: rgba(30, 144, 255, 0.08);
+                transform: scale(1.01);
+            }
+
+    .fund-name-cell {
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: #e9eef2;
+    }
+
+    .fund-id {
+        color: #9aa4ae;
+        font-size: 0.9rem;
+        margin-top: 0.3rem;
+    }
+
+    .fund-type-badge {
+        background: rgba(30, 144, 255, 0.15);
+        color: #1e90ff;
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-block;
+    }
+
+    .nav-value {
+        color: #28a745;
+        font-size: 1.2rem;
+        font-weight: bold;
+    }
+
+    .consolidator-text {
+        color: #9aa4ae;
+        font-size: 0.95rem;
+    }
+
+    .view-btn {
+        background: linear-gradient(135deg, #1e90ff, #0073e6);
+        color: white;
+        border: none;
+        padding: 0.6rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+        .view-btn:hover {
+            background: linear-gradient(135deg, #0073e6, #005bb5);
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(30, 144, 255, 0.3);
+            color: white;
+        }
+
+    .stats-row {
+        display: flex;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .stat-box {
+        background: linear-gradient(145deg, #122b4a, #0a1a2f);
+        border-radius: 15px;
+        padding: 1.5rem;
+        border: 1px solid #1c2a3d;
+        flex: 1;
+        min-width: 200px;
+        text-align: center;
+    }
+
+    .stat-label {
+        color: #9aa4ae;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-value {
+        color: #1e90ff;
+        font-size: 2rem;
+        font-weight: bold;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #9aa4ae;
+    }
+
+        .empty-state i {
+            font-size: 5rem;
+            color: #1e90ff;
+            opacity: 0.3;
+            margin-bottom: 1.5rem;
+        }
+
+    .search-filter-bar {
+        background: linear-gradient(145deg, #122b4a, #0a1a2f);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border: 1px solid #1c2a3d;
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .search-input {
+        background: #0a1a2f;
+        border: 1px solid #1c2a3d;
+        color: #e9eef2;
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        flex: 1;
+        min-width: 250px;
+    }
+
+        .search-input:focus {
+            background: #0a1a2f;
+            border-color: #1e90ff;
+            color: #e9eef2;
+            box-shadow: 0 0 0 0.2rem rgba(30, 144, 255, 0.18);
+        }
+
+    .filter-select {
+        background: #0a1a2f;
+        border: 1px solid #1c2a3d;
+        color: #e9eef2;
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        min-width: 150px;
+    }
+
+        .filter-select:focus {
+            background: #0a1a2f;
+            border-color: #1e90ff;
+            color: #e9eef2;
+        }
+</style>
+
+<div class="funds-container">
+    <h1 class="page-title display-4">💰 Investment Funds</h1>
+    <p class="subtitle">Browse and compare all available investment funds</p>
+
+    @if (Model != null && Model.Any())
+    {
+        <!-- Statistics Row -->
+        <div class="stats-row">
+            <div class="stat-box">
+                <div class="stat-label">Total Funds</div>
+                <div class="stat-value">@Model.Count()</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Fund Types</div>
+                <div class="stat-value">@Model.Select(f => f.FundType).Distinct().Count()</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Avg NAV</div>
+                <div class="stat-value">$@Model.Average(f => f.NetAssetValue).ToString("N0")</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Total NAV</div>
+                <div class="stat-value">$@Model.Sum(f => f.NetAssetValue).ToString("N0")</div>
+            </div>
+        </div>
+
+        <!-- Search and Filter Bar -->
+        <div class="search-filter-bar">
+            <input type="text" class="search-input" id="searchInput" placeholder="🔍 Search funds by name...">
+            <select class="filter-select" id="typeFilter">
+                <option value="">All Types</option>
+                @foreach (var type in Model.Select(f => f.FundType).Distinct().OrderBy(t => t))
+                {
+                    <option value="@type">@type</option>
+                }
+            </select>
+            <button class="btn view-btn" onclick="resetFilters()">Reset</button>
+        </div>
+
+        <!-- Funds Table -->
+        <div class="table-card">
+            <div class="table-header">
+                <h2>Available Funds (@Model.Count())</h2>
+            </div>
+            <div class="table-responsive">
+                <table class="funds-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 10%;">Fund ID</th>
+                            <th style="width: 30%;">Fund Name</th>
+                            <th style="width: 15%;">Type</th>
+                            <th style="width: 15%;">NAV</th>
+                            <th style="width: 20%;">Consolidator</th>
+                            <th style="width: 10%;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fundsTableBody">
+                        @foreach (var fund in Model)
+                        {
+                            <tr data-name="@fund.FundName.ToLower()" data-type="@fund.FundType.ToLower()">
+                                <td>
+                                    <span style="color: #1e90ff; font-weight: 600;">#@fund.FundId</span>
+                                </td>
+                                <td>
+                                    <div class="fund-name-cell">@fund.FundName</div>
+                                </td>
+                                <td>
+                                    <span class="fund-type-badge">@fund.FundType</span>
+                                </td>
+                                <td>
+                                    <div class="nav-value">$@fund.NetAssetValue.ToString("N2")</div>
+                                </td>
+                                <td>
+                                    <div class="consolidator-text">@fund.Consolidator</div>
+                                </td>
+                                <td>
+                                    <a href="@Url.Action("Details", "Funds", new { id = fund.FundId })"
+                                       class="view-btn">
+                                        View →
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <div class="mb-3">📊</div>
+            <h3>No Funds Available Yet</h3>
+            <p>Check back soon for investment opportunities!</p>
+        </div>
+    }
+</div>
+
+<script>
+    // Search functionality
+    document.getElementById('searchInput')?.addEventListener('keyup', filterTable);
+    document.getElementById('typeFilter')?.addEventListener('change', filterTable);
+
+    function filterTable() {
+        const searchValue = document.getElementById('searchInput').value.toLowerCase();
+        const typeValue = document.getElementById('typeFilter').value.toLowerCase();
+        const rows = document.querySelectorAll('#fundsTableBody tr');
+
+        rows.forEach(row => {
+            const name = row.getAttribute('data-name');
+            const type = row.getAttribute('data-type');
+
+            const matchesSearch = name.includes(searchValue);
+            const matchesType = typeValue === '' || type === typeValue;
+
+            if (matchesSearch && matchesType) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    function resetFilters() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('typeFilter').value = '';
+        filterTable();
+    }
+</script>
