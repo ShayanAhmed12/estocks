@@ -56,7 +56,17 @@
         <p class="lead mb-4">
             Your one-stop solution for managing and tracking stocks efficiently.
         </p>
-        <a href="/Users" class="btn btn-primary btn-lg">Get Started</a>
+        @{
+            var isAuth = User?.Identity?.IsAuthenticated == true;
+        }
+        @if (isAuth)
+        {
+            <a asp-controller="Wallets" asp-action="Index" class="btn btn-primary btn-lg">Get Started</a>
+        }
+        else
+        {
+            <a asp-controller="Users" asp-action="Login" class="btn btn-primary btn-lg">Get Started</a>
+        }
     </div>
 
     <footer class="mt-5 text-muted">
