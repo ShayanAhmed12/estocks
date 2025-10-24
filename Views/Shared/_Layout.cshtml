@@ -3,17 +3,17 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - WebApplication2</title>
+    <title>@ViewData["Title"] - E-Stocks</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/bootstrap-dark-overrides.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/WebApplication2.styles.css" asp-append-version="true" />
 </head>
-<body class="bg-dark text-light">
+<body class="bg-dark text-light d-flex flex-column min-vh-100 m-0">
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-dark border-bottom box-shadow mb-3">
             <div class="container-fluid">
-                <a class="navbar-brand text-light" asp-area="" asp-controller="Home" asp-action="Index">WebApplication2</a>
+                <a class="navbar-brand text-light" asp-area="" asp-controller="Home" asp-action="Index">E-Stocks</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -57,17 +57,22 @@
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
 
-    <footer class="border-top footer text-light">
+    <main role="main" class="flex-grow-1">
         <div class="container">
-            &copy; 2025 - WebApplication2 - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            <div class="pb-3">
+                @RenderBody()
+            </div>
         </div>
-    </footer>
+    </main>
+
+    <footer class="mt-auto container text-center text-muted">
+        <hr class="my-4" />
+        <p class="mb-0">
+            Made by: Hassan Nafees, Shayan Ahmed, and Mohid Raheel
+        </p>
+        <p class="small">&copy; @DateTime.Now.Year E-Stocks Project</p>
+    </footer>   
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
