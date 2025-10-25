@@ -1,0 +1,398 @@
+﻿@model WebApplication2.Models.Fund
+
+@{
+    ViewData["Title"] = Model.FundName;
+    var isLoggedIn = User.Identity?.IsAuthenticated ?? false;
+}
+
+<style>
+    body {
+        background: linear-gradient(135deg, #050505, #0a1a2f);
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .details-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .back-button {
+        background: rgba(30, 144, 255, 0.1);
+        color: #1e90ff;
+        border: 1px solid #1c2a3d;
+        padding: 0.6rem 1.5rem;
+        border-radius: 10px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+        transition: all 0.3s ease;
+    }
+
+        .back-button:hover {
+            background: rgba(30, 144, 255, 0.2);
+            color: #1e90ff;
+            transform: translateX(-5px);
+        }
+
+    .fund-header {
+        background: linear-gradient(145deg, #0a1a2f, #050505);
+        border-radius: 20px;
+        padding: 3rem;
+        margin-bottom: 2rem;
+        border: 1px solid #1c2a3d;
+        box-shadow: 0 8px 25px rgba(30, 144, 255, 0.1);
+    }
+
+    .fund-icon-large {
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(135deg, #1e90ff, #0073e6);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 8px 25px rgba(30, 144, 255, 0.3);
+    }
+
+    .fund-title {
+        color: #e9eef2;
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+    }
+
+    .fund-type-badge {
+        background: rgba(30, 144, 255, 0.15);
+        color: #1e90ff;
+        padding: 0.5rem 1.5rem;
+        border-radius: 25px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        display: inline-block;
+    }
+
+    .details-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .detail-card {
+        background: linear-gradient(145deg, #0a1a2f, #050505);
+        border-radius: 15px;
+        padding: 2rem;
+        border: 1px solid #1c2a3d;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .detail-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(30, 144, 255, 0.15);
+        }
+
+    .detail-card-title {
+        color: #9aa4ae;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .detail-card-value {
+        color: #e9eef2;
+        font-size: 2rem;
+        font-weight: bold;
+    }
+
+    .nav-card .detail-card-value {
+        color: #28a745;
+        font-size: 2.5rem;
+    }
+
+    .info-section {
+        background: linear-gradient(145deg, #0a1a2f, #050505);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-top: 2rem;
+        border: 1px solid #1c2a3d;
+    }
+
+    .info-section-title {
+        color: #1e90ff;
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 1.2rem 0;
+        border-bottom: 1px solid #1c2a3d;
+    }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+    .info-label {
+        color: #9aa4ae;
+        font-size: 1rem;
+        font-weight: 500;
+    }
+
+    .info-value {
+        color: #e9eef2;
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+
+    .action-section {
+        margin-top: 2rem;
+    }
+
+    .invest-btn {
+        width: 100%;
+        background: linear-gradient(135deg, #28a745, #20803a);
+        color: white;
+        border: none;
+        padding: 1.5rem 2rem;
+        border-radius: 15px;
+        font-size: 1.2rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+    }
+
+        .invest-btn:hover {
+            background: linear-gradient(135deg, #20803a, #186429);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+        }
+
+    .login-warning {
+        background: linear-gradient(145deg, #2d1f1f, #1a0f0f);
+        border: 2px solid #dc3545;
+        border-radius: 15px;
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .login-warning-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+
+    .login-warning-title {
+        color: #dc3545;
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+    }
+
+    .login-warning-text {
+        color: #9aa4ae;
+        margin-bottom: 1.5rem;
+    }
+
+    .login-btn {
+        background: linear-gradient(135deg, #1e90ff, #0073e6);
+        color: white;
+        border: none;
+        padding: 1rem 2.5rem;
+        border-radius: 12px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+        .login-btn:hover {
+            background: linear-gradient(135deg, #0073e6, #005bb5);
+            transform: scale(1.05);
+            color: white;
+        }
+
+    .register-link {
+        color: #1e90ff;
+        text-decoration: none;
+        margin-top: 1rem;
+        display: inline-block;
+    }
+
+        .register-link:hover {
+            text-decoration: underline;
+        }
+
+    .stats-highlight {
+        background: linear-gradient(145deg, #122b4a, #0a1a2f);
+        border-radius: 15px;
+        padding: 2rem;
+        margin-top: 2rem;
+        border: 1px solid #1c2a3d;
+        text-align: center;
+    }
+
+    .stats-highlight-title {
+        color: #9aa4ae;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 0.5rem;
+    }
+
+    .stats-highlight-value {
+        color: #1e90ff;
+        font-size: 3rem;
+        font-weight: bold;
+        text-shadow: 0 0 10px rgba(30, 144, 255, 0.3);
+    }
+
+    .alert-info-custom {
+        background: rgba(30, 144, 255, 0.1);
+        border: 1px solid #1e90ff;
+        border-radius: 15px;
+        padding: 1.5rem;
+        color: #e9eef2;
+        margin-top: 2rem;
+    }
+
+        .alert-info-custom strong {
+            color: #1e90ff;
+        }
+</style>
+
+<div class="details-container">
+    <!-- Back Button -->
+    <a href="@Url.Action("Index", "Funds")" class="back-button">
+        ← Back to All Funds
+    </a>
+
+    <!-- Fund Header -->
+    <div class="fund-header">
+        <div class="fund-icon-large">📊</div>
+        <h1 class="fund-title">@Model.FundName</h1>
+        <span class="fund-type-badge">@Model.FundType</span>
+
+        <!-- NAV Highlight -->
+        <div class="stats-highlight">
+            <div class="stats-highlight-title">Current Net Asset Value</div>
+            <div class="stats-highlight-value">$@Model.NetAssetValue.ToString("N2")</div>
+            <p style="color: #9aa4ae; margin-top: 0.5rem; margin-bottom: 0;">per unit</p>
+        </div>
+    </div>
+
+    <!-- Quick Stats Cards -->
+    <div class="details-grid">
+        <div class="detail-card nav-card">
+            <div class="detail-card-title">
+                💰 Net Asset Value
+            </div>
+            <div class="detail-card-value">$@Model.NetAssetValue.ToString("N2")</div>
+            <p style="color: #9aa4ae; margin-top: 0.5rem; margin-bottom: 0;">Current NAV per unit</p>
+        </div>
+
+        <div class="detail-card">
+            <div class="detail-card-title">
+                🏢 Fund Type
+            </div>
+            <div class="detail-card-value" style="font-size: 1.5rem;">@Model.FundType</div>
+            <p style="color: #9aa4ae; margin-top: 0.5rem; margin-bottom: 0;">Investment category</p>
+        </div>
+
+        <div class="detail-card">
+            <div class="detail-card-title">
+                🔖 Fund ID
+            </div>
+            <div class="detail-card-value" style="color: #1e90ff;">#@Model.FundId</div>
+            <p style="color: #9aa4ae; margin-top: 0.5rem; margin-bottom: 0;">Unique identifier</p>
+        </div>
+    </div>
+
+    <!-- Fund Information -->
+    <div class="info-section">
+        <h2 class="info-section-title">📋 Fund Information</h2>
+
+        <div class="info-row">
+            <span class="info-label">Fund Name</span>
+            <span class="info-value">@Model.FundName</span>
+        </div>
+
+        <div class="info-row">
+            <span class="info-label">Fund Type</span>
+            <span class="info-value">@Model.FundType</span>
+        </div>
+
+        <div class="info-row">
+            <span class="info-label">Net Asset Value (NAV)</span>
+            <span class="info-value" style="color: #28a745;">$@Model.NetAssetValue.ToString("N2")</span>
+        </div>
+
+        <div class="info-row">
+            <span class="info-label">Fund Consolidator</span>
+            <span class="info-value">@Model.Consolidator</span>
+        </div>
+
+        <div class="info-row">
+            <span class="info-label">Fund ID</span>
+            <span class="info-value" style="color: #1e90ff;">#@Model.FundId</span>
+        </div>
+    </div>
+
+    <!-- Investment Action Section -->
+    <div class="action-section">
+        @if (isLoggedIn)
+        {
+            <!-- Show Invest Button if Logged In -->
+            <button class="btn invest-btn" onclick="alert('Hassan Nafees and shayan bhai fund investment banao.')">
+                🚀 Invest in This Fund
+            </button>
+        }
+        else
+        {
+            <!-- Show Login Warning if NOT Logged In -->
+            <div class="login-warning">
+                <div class="login-warning-icon">🔒</div>
+                <h3 class="login-warning-title">Login Required</h3>
+                <p class="login-warning-text">
+                    You need to login to invest in this fund. Create an account or login to start investing!
+                </p>
+                <a href="@Url.Action("Login", "Users", new { returnUrl = Url.Action("Details", "Funds", new { id = Model.FundId }) })" class="login-btn">
+                    Login to Invest
+                </a>
+                <br />
+                <a href="@Url.Action("Register", "Users")" class="register-link">
+                    Don't have an account? Register here
+                </a>
+            </div>
+        }
+    </div>
+
+    <!-- Additional Info Section -->
+    <div class="info-section" style="margin-top: 2rem;">
+        <h2 class="info-section-title">🏦 About the Consolidator</h2>
+        <div class="info-row">
+            <span class="info-label">Managed By</span>
+            <span class="info-value">@Model.Consolidator</span>
+        </div>
+        <p style="color: #9aa4ae; margin-top: 1rem; margin-bottom: 0;">
+            This fund is professionally managed by @Model.Consolidator. For more information about their investment strategy
+            and performance history, please contact them directly.
+        </p>
+    </div>
+</div>
