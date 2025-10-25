@@ -1,0 +1,324 @@
+﻿@model List<WebApplication2.Services.StockQuote>
+
+@{
+    ViewData["Title"] = "Stock Market - PSX";
+}
+@if (ViewBag.Message != null)
+{
+    <div class="alert alert-warning">
+        ⚠️ @ViewBag.Message
+    </div>
+}
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger">
+        <h4>Error Loading Stocks</h4>
+        <p>@ViewBag.Error</p>
+        <p><strong>Debug Info:</strong></p>
+        <ul>
+            <li>Available stocks in service: @(ViewBag.StockCount ?? 0)</li>
+            <li>Check browser console (F12) for JavaScript errors</li>
+            <li>Verify internet connection</li>
+        </ul>
+    </div>
+}
+<style>
+    body {
+        background: linear-gradient(135deg, #050505, #0a1a2f);
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .stocks-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        background: linear-gradient(145deg, #0a1a2f, #050505);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 1px solid #1c2a3d;
+    }
+
+    .page-title {
+        color: #1e90ff;
+        font-weight: bold;
+        text-shadow: 0 0 10px rgba(30, 144, 255, 0.2);
+    }
+
+    .stock-card {
+        background: linear-gradient(145deg, #0a1a2f, #050505);
+        border-radius: 15px;
+        padding: 1.5rem;
+        border: 1px solid #1c2a3d;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        height: 100%;
+    }
+
+    .stock-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(30, 144, 255, 0.15);
+        border-color: #1e90ff;
+    }
+
+    .stock-symbol {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #1e90ff;
+        margin-bottom: 0.5rem;
+    }
+
+    .company-name {
+        color: #9aa4ae;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+        height: 40px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .stock-price {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #e9eef2;
+        margin-bottom: 0.5rem;
+    }
+
+    .price-change {
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .price-up {
+        background: rgba(40, 167, 69, 0.2);
+        color: #28a745;
+    }
+
+    .price-down {
+        background: rgba(220, 53, 69, 0.2);
+        color: #dc3545;
+    }
+
+    .price-neutral {
+        background: rgba(158, 158, 158, 0.2);
+        color: #9e9e9e;
+    }
+
+    .stock-details {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #1c2a3d;
+    }
+
+    .detail-item {
+        text-align: center;
+    }
+
+    .detail-label {
+        color: #9aa4ae;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+    }
+
+    .detail-value {
+        color: #e9eef2;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .search-box {
+        background: #122b4a;
+        border: 1px solid #1c2a3d;
+        color: #e9eef2;
+        border-radius: 30px;
+        padding: 0.75rem 1.5rem;
+        width: 100%;
+        max-width: 400px;
+    }
+
+    .search-box:focus {
+        background: #122b4a;
+        border-color: #1e90ff;
+        color: #e9eef2;
+        box-shadow: 0 0 0 0.2rem rgba(30, 144, 255, 0.18);
+    }
+
+    .filter-btn {
+        border-radius: 20px;
+        padding: 0.5rem 1.5rem;
+        background: #122b4a;
+        border: 1px solid #1c2a3d;
+        color: #e9eef2;
+        transition: all 0.2s ease;
+    }
+
+    .filter-btn:hover,
+    .filter-btn.active {
+        background: #1e90ff;
+        border-color: #1e90ff;
+        color: white;
+    }
+
+    .loading-spinner {
+        text-align: center;
+        padding: 3rem;
+        color: #1e90ff;
+    }
+</style>
+
+<div class="stocks-container">
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <div>
+                <h1 class="page-title display-4 mb-2">Pakistan Stock Exchange</h1>
+                <p class="text-muted mb-0">Live market data from PSX</p>
+            </div>
+            <div class="mt-3 mt-md-0">
+                <input type="text" id="searchBox" class="search-box" placeholder="Search stocks...">
+            </div>
+        </div>
+    </div>
+
+    <div class="mb-4">
+        <div class="d-flex gap-2 flex-wrap">
+            <button class="filter-btn active" data-filter="all">All Stocks</button>
+            <button class="filter-btn" data-filter="gainers">Top Gainers</button>
+            <button class="filter-btn" data-filter="losers">Top Losers</button>
+            <button class="filter-btn" data-filter="volume">High Volume</button>
+        </div>
+    </div>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="loading-spinner">
+            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3">Loading stock data...</p>
+        </div>
+    }
+    else
+    {
+        <div class="row" id="stocksGrid">
+            @foreach (var stock in Model)
+            {
+                var changeClass = stock.Change > 0 ? "price-up" : (stock.Change < 0 ? "price-down" : "price-neutral");
+                var changeIcon = stock.Change > 0 ? "▲" : (stock.Change < 0 ? "▼" : "●");
+
+                <div class="col-lg-3 col-md-4 col-sm-6 mb-4 stock-item"
+                     data-symbol="@stock.Symbol"
+                     data-change="@stock.Change"
+                     data-volume="@stock.Volume">
+                    <a asp-action="Details" asp-route-symbol="@stock.Symbol" class="text-decoration-none">
+                        <div class="stock-card">
+                            <div class="stock-symbol">@stock.Symbol</div>
+                            <div class="company-name">@stock.CompanyName</div>
+
+                            <div class="stock-price">@stock.Currency @stock.CurrentPrice.ToString("N2")</div>
+
+                            <div class="price-change @changeClass">
+                                @changeIcon @stock.Change.ToString("N2") (@stock.ChangePercent.ToString("N2")%)
+                            </div>
+
+                            <div class="stock-details">
+                                <div class="detail-item">
+                                    <div class="detail-label">Open</div>
+                                    <div class="detail-value">@stock.Open.ToString("N2")</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">High</div>
+                                    <div class="detail-value">@stock.High.ToString("N2")</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">Low</div>
+                                    <div class="detail-value">@stock.Low.ToString("N2")</div>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        // Search functionality
+        document.getElementById('searchBox').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const stockItems = document.querySelectorAll('.stock-item');
+
+            stockItems.forEach(item => {
+                const symbol = item.getAttribute('data-symbol').toLowerCase();
+                const companyName = item.querySelector('.company-name').textContent.toLowerCase();
+
+                if (symbol.includes(searchTerm) || companyName.includes(searchTerm)) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+
+        // Filter functionality
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Update active state
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                const filter = this.getAttribute('data-filter');
+                const stockItems = Array.from(document.querySelectorAll('.stock-item'));
+
+                // Show all items first
+                stockItems.forEach(item => item.style.display = '');
+
+                if (filter === 'gainers') {
+                    stockItems.sort((a, b) => {
+                        return parseFloat(b.getAttribute('data-change')) - parseFloat(a.getAttribute('data-change'));
+                    });
+                    stockItems.forEach((item, index) => {
+                        if (index >= 12 || parseFloat(item.getAttribute('data-change')) <= 0) {
+                            item.style.display = 'none';
+                        }
+                    });
+                } else if (filter === 'losers') {
+                    stockItems.sort((a, b) => {
+                        return parseFloat(a.getAttribute('data-change')) - parseFloat(b.getAttribute('data-change'));
+                    });
+                    stockItems.forEach((item, index) => {
+                        if (index >= 12 || parseFloat(item.getAttribute('data-change')) >= 0) {
+                            item.style.display = 'none';
+                        }
+                    });
+                } else if (filter === 'volume') {
+                    stockItems.sort((a, b) => {
+                        return parseFloat(b.getAttribute('data-volume')) - parseFloat(a.getAttribute('data-volume'));
+                    });
+                    stockItems.forEach((item, index) => {
+                        if (index >= 12) {
+                            item.style.display = 'none';
+                        }
+                    });
+                }
+
+                // Rearrange DOM
+                const grid = document.getElementById('stocksGrid');
+                stockItems.forEach(item => grid.appendChild(item));
+            });
+        });
+
+        // Auto-refresh every 30 seconds
+        setInterval(function() {
+            location.reload();
+        }, 30000);
+    </script>
+}

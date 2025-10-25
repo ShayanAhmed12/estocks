@@ -1,0 +1,599 @@
+﻿@model WebApplication2.Services.StockQuote
+
+@{
+    ViewData["Title"] = Model.CompanyName;
+    var historicalData = ViewBag.HistoricalData as List<WebApplication2.Services.StockHistoricalData>;
+    var userWallet = ViewBag.UserWallet as WebApplication2.Models.Wallet;
+    var selectedPeriod = ViewBag.SelectedPeriod as string ?? "1mo";
+    var changeClass = Model.Change > 0 ? "text-success" : (Model.Change < 0 ? "text-danger" : "text-muted");
+    var changeIcon = Model.Change > 0 ? "▲" : (Model.Change < 0 ? "▼" : "●");
+}
+
+<style>
+    body {
+        background: linear-gradient(135deg, #050505, #0a1a2f);
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .stock-details-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .details-card {
+        background: linear-gradient(145deg, #0a1a2f, #050505);
+        border-radius: 20px;
+        padding: 2rem;
+        border: 1px solid #1c2a3d;
+        margin-bottom: 2rem;
+    }
+
+    .stock-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .stock-title {
+        color: #1e90ff;
+        font-weight: bold;
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .stock-subtitle {
+        color: #9aa4ae;
+        font-size: 1.1rem;
+    }
+
+    .current-price {
+        font-size: 3rem;
+        font-weight: bold;
+        color: #e9eef2;
+    }
+
+    .price-change-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        display: inline-block;
+        margin-top: 0.5rem;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .stat-box {
+        background: #122b4a;
+        padding: 1rem;
+        border-radius: 10px;
+        border: 1px solid #1c2a3d;
+    }
+
+    .stat-label {
+        color: #9aa4ae;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-value {
+        color: #e9eef2;
+        font-size: 1.3rem;
+        font-weight: 600;
+    }
+
+    .chart-container {
+        background: linear-gradient(145deg, #0a1a2f, #050505);
+        border-radius: 20px;
+        padding: 2rem;
+        border: 1px solid #1c2a3d;
+        margin-bottom: 2rem;
+        min-height: 400px;
+    }
+
+    .trading-panel {
+        background: linear-gradient(145deg, #0a1a2f, #050505);
+        border-radius: 20px;
+        padding: 2rem;
+        border: 1px solid #1c2a3d;
+        position: sticky;
+        top: 20px;
+    }
+
+    .trading-tabs {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .tab-btn {
+        flex: 1;
+        padding: 0.75rem;
+        border: 1px solid #1c2a3d;
+        background: #122b4a;
+        color: #e9eef2;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+        .tab-btn:hover,
+        .tab-btn.active {
+            background: #1e90ff;
+            border-color: #1e90ff;
+            color: white;
+        }
+
+    .trade-form {
+        display: none;
+    }
+
+        .trade-form.active {
+            display: block;
+        }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        color: #9aa4ae;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .form-control {
+        background: #122b4a;
+        border: 1px solid #1c2a3d;
+        color: #e9eef2;
+        border-radius: 10px;
+        padding: 0.75rem;
+        width: 100%;
+    }
+
+        .form-control:focus {
+            background: #122b4a;
+            border-color: #1e90ff;
+            color: #e9eef2;
+            box-shadow: 0 0 0 0.2rem rgba(30, 144, 255, 0.18);
+        }
+
+    .trade-btn {
+        width: 100%;
+        padding: 1rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+    .buy-btn {
+        background: #28a745;
+        color: white;
+    }
+
+        .buy-btn:hover {
+            background: #218838;
+            transform: scale(1.02);
+        }
+
+    .sell-btn {
+        background: #dc3545;
+        color: white;
+    }
+
+        .sell-btn:hover {
+            background: #c82333;
+            transform: scale(1.02);
+        }
+
+    .wallet-info {
+        background: #122b4a;
+        padding: 1rem;
+        border-radius: 10px;
+        margin-bottom: 1.5rem;
+        border: 1px solid #1c2a3d;
+    }
+
+    .wallet-balance {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #1e90ff;
+    }
+
+    .calculation-box {
+        background: #122b4a;
+        padding: 1rem;
+        border-radius: 10px;
+        margin-top: 1rem;
+        border: 1px solid #1c2a3d;
+    }
+
+    .period-selector {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .period-btn {
+        padding: 0.4rem 1rem;
+        border: 1px solid #1c2a3d;
+        background: #122b4a;
+        color: #e9eef2;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+        .period-btn:hover,
+        .period-btn.active {
+            background: #1e90ff;
+            border-color: #1e90ff;
+            color: white;
+        }
+
+    .back-link {
+        color: #1e90ff;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+        .back-link:hover {
+            color: #0073e6;
+            text-shadow: 0 0 6px rgba(30, 144, 255, 0.3);
+        }
+</style>
+
+<div class="stock-details-container">
+    <div class="mb-3">
+        <a asp-action="Index" class="back-link">← Back to All Stocks</a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row">
+        <!-- Left Column: Stock Info & Chart -->
+        <div class="col-lg-8">
+            <!-- Stock Header -->
+            <div class="details-card">
+                <div class="stock-header">
+                    <div>
+                        <div class="stock-title">@Model.Symbol</div>
+                        <div class="stock-subtitle">@Model.CompanyName</div>
+                    </div>
+                    <div class="text-end">
+                        <div class="current-price">@Model.Currency @Model.CurrentPrice.ToString("N2")</div>
+                        <span class="price-change-badge @(Model.Change >= 0 ? "bg-success" : "bg-danger")">
+                            @changeIcon @Model.Change.ToString("N2") (@Model.ChangePercent.ToString("N2")%)
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-label">Previous Close</div>
+                        <div class="stat-value">@Model.PreviousClose.ToString("N2")</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Open</div>
+                        <div class="stat-value">@Model.Open.ToString("N2")</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Day High</div>
+                        <div class="stat-value">@Model.High.ToString("N2")</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Day Low</div>
+                        <div class="stat-value">@Model.Low.ToString("N2")</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Volume</div>
+                        <div class="stat-value">@Model.Volume.ToString("N0")</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart -->
+            <div class="chart-container">
+                <h4 class="mb-3" style="color: #1e90ff;">Performance Chart</h4>
+                <div class="period-selector">
+                    <button class="period-btn" data-period="1d">1D</button>
+                    <button class="period-btn" data-period="5d">5D</button>
+                    <button class="period-btn active" data-period="1mo">1M</button>
+                    <button class="period-btn" data-period="3mo">3M</button>
+                    <button class="period-btn" data-period="6mo">6M</button>
+                    <button class="period-btn" data-period="1y">1Y</button>
+                </div>
+                <canvas id="stockChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Right Column: Trading Panel -->
+        <div class="col-lg-4">
+            <div class="trading-panel">
+                <h4 class="mb-4" style="color: #1e90ff;">Trade</h4>
+
+                @if (User.Identity.IsAuthenticated)
+                {
+                    @if (userWallet != null)
+                    {
+                        <div class="wallet-info">
+                            <div class="text-muted mb-1">Wallet Balance</div>
+                            <div class="wallet-balance">$@userWallet.Balance.ToString("N0")</div>
+                        </div>
+                    }
+
+                    <!-- Trading Tabs -->
+                    <div class="trading-tabs">
+                        <button class="tab-btn active" data-tab="spot">Spot Trade</button>
+                        <button class="tab-btn" data-tab="future">Future Trade</button>
+                    </div>
+
+                    <!-- Spot Trade Form -->
+                    <div id="spotTradeForm" class="trade-form active">
+                        <div class="mb-4">
+                            <h5 style="color: #e9eef2;">Spot Trading</h5>
+                            <p class="text-muted small">Buy or sell immediately at current market price</p>
+                        </div>
+
+                        <!-- Buy Form -->
+                        <form asp-action="BuySpot" method="post" class="mb-3">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="symbol" value="@Model.Symbol" />
+
+                            <div class="form-group">
+                                <label class="form-label">Quantity</label>
+                                <input type="number" name="quantity" class="form-control"
+                                       placeholder="Enter shares" min="1" required
+                                       id="buyQuantity" oninput="calculateBuyCost()">
+                            </div>
+
+                            <div class="calculation-box">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted">Price per share:</span>
+                                    <span class="text-light">@Model.Currency @Model.CurrentPrice.ToString("N2")</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">Total Cost:</span>
+                                    <span class="text-light fw-bold" id="totalBuyCost">$0.00</span>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="trade-btn buy-btn mt-3">Buy Now</button>
+                        </form>
+
+                        <hr style="border-color: #1c2a3d;">
+
+                        <!-- Sell Form -->
+                        <form asp-action="SellSpot" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="symbol" value="@Model.Symbol" />
+
+                            <div class="form-group">
+                                <label class="form-label">Quantity</label>
+                                <input type="number" name="quantity" class="form-control"
+                                       placeholder="Enter shares" min="1" required
+                                       id="sellQuantity" oninput="calculateSellRevenue()">
+                            </div>
+
+                            <div class="calculation-box">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted">Price per share:</span>
+                                    <span class="text-light">@Model.Currency @Model.CurrentPrice.ToString("N2")</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">Total Revenue:</span>
+                                    <span class="text-light fw-bold" id="totalSellRevenue">$0.00</span>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="trade-btn sell-btn mt-3">Sell Now</button>
+                        </form>
+                    </div>
+
+                    <!-- Future Trade Form -->
+                    <div id="futureTradeForm" class="trade-form">
+                        <div class="mb-4">
+                            <h5 style="color: #e9eef2;">Future Trading</h5>
+                            <p class="text-muted small">Contract for future delivery at today's price</p>
+                        </div>
+
+                        <form asp-action="BuyFuture" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="symbol" value="@Model.Symbol" />
+
+                            <div class="form-group">
+                                <label class="form-label">Quantity</label>
+                                <input type="number" name="quantity" class="form-control"
+                                       placeholder="Enter shares" min="1" required
+                                       id="futureQuantity" oninput="calculateFutureCost()">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Expiry Date</label>
+                                <input type="date" name="expiryDate" class="form-control"
+                                       min="@DateTime.Now.AddDays(1).ToString("yyyy-MM-dd")" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Contract Type</label>
+                                <select name="contractType" class="form-control" required>
+                                    <option value="CALL">Call (Buy)</option>
+                                    <option value="PUT">Put (Sell)</option>
+                                </select>
+                            </div>
+
+                            <div class="calculation-box">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted">Contract Price:</span>
+                                    <span class="text-light">@Model.Currency @Model.CurrentPrice.ToString("N2")</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">Total Cost:</span>
+                                    <span class="text-light fw-bold" id="totalFutureCost">$0.00</span>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="trade-btn buy-btn mt-3">Create Contract</button>
+                        </form>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <p class="text-muted mb-3">Please login to start trading</p>
+                        <a asp-controller="Users" asp-action="Login" class="btn btn-primary">Login</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        const currentPrice = @Model.CurrentPrice;
+
+        // Trading tabs
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const tab = this.getAttribute('data-tab');
+
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.trade-form').forEach(f => f.classList.remove('active'));
+
+                this.classList.add('active');
+                document.getElementById(tab + 'TradeForm').classList.add('active');
+            });
+        });
+
+        // Calculate buy cost
+        function calculateBuyCost() {
+            const quantity = document.getElementById('buyQuantity').value || 0;
+            const total = quantity * currentPrice;
+            document.getElementById('totalBuyCost').textContent = '$' + total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        }
+
+        // Calculate sell revenue
+        function calculateSellRevenue() {
+            const quantity = document.getElementById('sellQuantity').value || 0;
+            const total = quantity * currentPrice;
+            document.getElementById('totalSellRevenue').textContent = '$' + total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        }
+
+        // Calculate future cost
+        function calculateFutureCost() {
+            const quantity = document.getElementById('futureQuantity').value || 0;
+            const total = quantity * currentPrice;
+            document.getElementById('totalFutureCost').textContent = '$' + total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        }
+
+        // Chart data
+        const historicalData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(historicalData));
+
+        const chartData = {
+            labels: historicalData.map(d => new Date(d.Date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
+            datasets: [{
+                label: 'Price',
+                data: historicalData.map(d => d.Close),
+                borderColor: '#1e90ff',
+                backgroundColor: 'rgba(30, 144, 255, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 0,
+                pointHoverRadius: 5
+            }]
+        };
+
+        // Create chart
+        const ctx = document.getElementById('stockChart').getContext('2d');
+        const stockChart = new Chart(ctx, {
+            type: 'line',
+            data: chartData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: '#0a1a2f',
+                        titleColor: '#1e90ff',
+                        bodyColor: '#e9eef2',
+                        borderColor: '#1c2a3d',
+                        borderWidth: 1
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            color: '#1c2a3d',
+                            borderColor: '#1c2a3d'
+                        },
+                        ticks: {
+                            color: '#9aa4ae'
+                        }
+                    },
+                    y: {
+                        grid: {
+                            color: '#1c2a3d',
+                            borderColor: '#1c2a3d'
+                        },
+                        ticks: {
+                            color: '#9aa4ae',
+                            callback: function(value) {
+                                return '@Model.Currency ' + value.toFixed(2);
+                            }
+                        }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                }
+            }
+        });
+
+        // Period selector - reload page with new period
+        document.querySelectorAll('.period-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const period = this.getAttribute('data-period');
+                const currentUrl = window.location.href.split('?')[0];
+                window.location.href = currentUrl + '?period=' + period;
+            });
+        });
+    </script>
+}

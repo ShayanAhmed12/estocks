@@ -1,9 +1,10 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.EntityFrameworkCore;
 using WebApplication2.Data;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using WebApplication2.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +14,13 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 // 👇 Add MySQL DbContext
 builder.Services.AddDbContext<EstocksDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+
+builder.Services.AddHttpClient<StockDataService>()
+    .ConfigureHttpClient(client =>
+    {
+        client.Timeout = TimeSpan.FromSeconds(30);
+    });
+builder.Services.AddScoped<StockDataService>();
 
 // 👇 Add MVC services (controllers + views)
 builder.Services.AddControllersWithViews();
