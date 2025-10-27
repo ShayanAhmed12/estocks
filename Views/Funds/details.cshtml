@@ -192,10 +192,7 @@
         text-align: center;
     }
 
-    .login-warning-icon {
-        font-size: 3rem;
-        margin-bottom: 1rem;
-    }
+    
 
     .login-warning-title {
         color: #dc3545;
@@ -285,7 +282,7 @@
 
     <!-- Fund Header -->
     <div class="fund-header">
-        <div class="fund-icon-large">📊</div>
+        
         <h1 class="fund-title">@Model.FundName</h1>
         <span class="fund-type-badge">@Model.FundType</span>
 
@@ -301,7 +298,7 @@
     <div class="details-grid">
         <div class="detail-card nav-card">
             <div class="detail-card-title">
-                💰 Net Asset Value
+                 Net Asset Value
             </div>
             <div class="detail-card-value">$@Model.NetAssetValue.ToString("N2")</div>
             <p style="color: #9aa4ae; margin-top: 0.5rem; margin-bottom: 0;">Current NAV per unit</p>
@@ -309,7 +306,7 @@
 
         <div class="detail-card">
             <div class="detail-card-title">
-                🏢 Fund Type
+                 Fund Type
             </div>
             <div class="detail-card-value" style="font-size: 1.5rem;">@Model.FundType</div>
             <p style="color: #9aa4ae; margin-top: 0.5rem; margin-bottom: 0;">Investment category</p>
@@ -317,7 +314,7 @@
 
         <div class="detail-card">
             <div class="detail-card-title">
-                🔖 Fund ID
+                 Fund ID
             </div>
             <div class="detail-card-value" style="color: #1e90ff;">#@Model.FundId</div>
             <p style="color: #9aa4ae; margin-top: 0.5rem; margin-bottom: 0;">Unique identifier</p>
@@ -326,7 +323,7 @@
 
     <!-- Fund Information -->
     <div class="info-section">
-        <h2 class="info-section-title">📋 Fund Information</h2>
+        <h2 class="info-section-title"> Fund Information</h2>
 
         <div class="info-row">
             <span class="info-label">Fund Name</span>
@@ -360,14 +357,14 @@
         {
             <!-- Show Invest Button if Logged In -->
             <button class="btn invest-btn" onclick="alert('Hassan Nafees and shayan bhai fund investment banao.')">
-                🚀 Invest in This Fund
+                 Invest in This Fund
             </button>
         }
         else
         {
             <!-- Show Login Warning if NOT Logged In -->
             <div class="login-warning">
-                <div class="login-warning-icon">🔒</div>
+                
                 <h3 class="login-warning-title">Login Required</h3>
                 <p class="login-warning-text">
                     You need to login to invest in this fund. Create an account or login to start investing!
@@ -385,7 +382,7 @@
 
     <!-- Additional Info Section -->
     <div class="info-section" style="margin-top: 2rem;">
-        <h2 class="info-section-title">🏦 About the Consolidator</h2>
+        <h2 class="info-section-title"> About the Consolidator</h2>
         <div class="info-row">
             <span class="info-label">Managed By</span>
             <span class="info-value">@Model.Consolidator</span>

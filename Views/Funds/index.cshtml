@@ -229,7 +229,7 @@
 </style>
 
 <div class="funds-container">
-    <h1 class="page-title display-4">💰 Investment Funds</h1>
+    <h1 class="page-title display-4"> Investment Funds</h1>
     <p class="subtitle">Browse and compare all available investment funds</p>
 
     @if (Model != null && Model.Any())
@@ -256,7 +256,7 @@
 
         <!-- Search and Filter Bar -->
         <div class="search-filter-bar">
-            <input type="text" class="search-input" id="searchInput" placeholder="🔍 Search funds by name...">
+            <input type="text" class="search-input" id="searchInput" placeholder=" Search funds by name...">
             <select class="filter-select" id="typeFilter">
                 <option value="">All Types</option>
                 @foreach (var type in Model.Select(f => f.FundType).Distinct().OrderBy(t => t))
@@ -319,7 +319,7 @@
     else
     {
         <div class="empty-state">
-            <div class="mb-3">📊</div>
+            
             <h3>No Funds Available Yet</h3>
             <p>Check back soon for investment opportunities!</p>
         </div>
