@@ -85,7 +85,6 @@ namespace WebApplication2.Controllers
             return View(quote);
         }
 
-        // POST: /Stocks/BuySpot
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> BuySpot(string symbol, int quantity)
@@ -125,54 +124,90 @@ namespace WebApplication2.Controllers
             wallet.Balance -= totalCost;
             wallet.LastUpdated = DateTime.Now;
 
-            // Create or update stock ownership
-            var existingStock = await _context.Stocks
+            // Get or create stock record that's associated with this user
+            var stock = await _context.Stocks
                 .FirstOrDefaultAsync(s => s.CompanyName == quote.CompanyName && s.UserId == userId);
 
-            if (existingStock != null)
+            if (stock != null)
             {
-                // Update existing stock - this is simplified, you might want to track individual purchases
-                existingStock.Price = (int)quote.CurrentPrice;
+                // Update price
+                stock.Price = (int)quote.CurrentPrice;
             }
             else
             {
-                // Create new stock entry
-                var newStock = new Stock
+                // Create new stock entry and save it right away so we get StockId
+                stock = new Stock
                 {
                     CompanyName = quote.CompanyName,
                     Price = (int)quote.CurrentPrice,
                     UserId = userId
                 };
-                _context.Stocks.Add(newStock);
+                _context.Stocks.Add(stock);
+                await _context.SaveChangesAsync(); // ensure stock.StockId is populated
             }
 
-            // Create spot trading record
-            var spotTrade = new SpotTrading
+            try
             {
-                UserId = userId,
-                StockId = existingStock?.StockId,
-                Quantity = quantity,
-                Price = (int)quote.CurrentPrice,
-                TradeTime = DateTime.Now
-            };
-            _context.SpotTradings.Add(spotTrade);
+                // Create spot trading record
+                var spotTrade = new SpotTrading
+                {
+                    UserId = userId,
+                    StockId = stock.StockId,
+                    Quantity = quantity,
+                    Price = (int)quote.CurrentPrice,
+                    TradeTime = DateTime.Now
+                };
+                _context.SpotTradings.Add(spotTrade);
 
-            // Create transaction record
-            var transaction = new Transaction
+                // Create transaction record
+                var transaction = new Transaction
+                {
+                    WalletId = wallet.WalletId,
+                    UserId = userId,
+                    StockId = stock.StockId,
+                    Quantity = quantity,
+                    TransactionType = "BUY_SPOT"
+                };
+                _context.Transactions.Add(transaction);
+
+                // Create an Order record for this buy
+                var order = new Order
+                {
+                    UserId = userId,
+                    StockId = stock.StockId,
+                    OrderType = "spot_buy",
+                    Quantity = quantity,
+                    Price = (int)quote.CurrentPrice,
+                    OrderStatus = true
+                };
+                _context.Orders.Add(order);
+
+                // Debug/log: enumerate entries that will be saved (useful during debugging)
+                var entries = _context.ChangeTracker.Entries()
+                    .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified)
+                    .Select(e => new { e.Entity.GetType().Name, e.State })
+                    .ToList();
+
+                // Optionally: put this info into TempData for quick local debugging (remove in prod)
+                TempData["SavePreview"] = System.Text.Json.JsonSerializer.Serialize(entries);
+
+                await _context.SaveChangesAsync();
+
+                TempData["Success"] = $"Successfully purchased {quantity} shares of {quote.CompanyName} for ${totalCost:N0}";
+            }
+            catch (Exception ex)
             {
-                WalletId = wallet.WalletId,
-                UserId = userId,
-                StockId = existingStock?.StockId,
-                Quantity = quantity,
-                TransactionType = "BUY_SPOT"
-            };
-            _context.Transactions.Add(transaction);
+                // surface the exception message so you can see what's failing
+                TempData["Error"] = "Failed to complete purchase: " + ex.Message;
 
-            await _context.SaveChangesAsync();
+                // Optionally log the full exception to console or a logger
+                Console.WriteLine(ex); // replace with your logger if you have one
+            }
 
-            TempData["Success"] = $"Successfully purchased {quantity} shares of {quote.CompanyName} for ${totalCost:N0}";
             return RedirectToAction("Details", new { symbol });
         }
+
+
 
         // POST: /Stocks/SellSpot
         [HttpPost]

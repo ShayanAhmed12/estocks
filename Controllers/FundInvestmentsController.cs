@@ -59,5 +59,61 @@ namespace WebApplication2.Controllers
             await _context.SaveChangesAsync();
             return NoContent();
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Invest(int fundId, int amount)
+        {
+            // Get logged-in user
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+            {
+                TempData["Error"] = "You must be logged in to invest.";
+                return RedirectToAction("Details", "Funds", new { id = fundId });
+            }
+
+            // Get user's wallet
+            var wallet = await _context.Wallets.FirstOrDefaultAsync(w => w.UserId == userId);
+            if (wallet == null || wallet.Balance < amount)
+            {
+                TempData["Error"] = "Insufficient wallet balance to invest.";
+                return RedirectToAction("Details", "Funds", new { id = fundId });
+            }
+
+            // Get the fund
+            var fund = await _context.Funds.FirstOrDefaultAsync(f => f.FundId == fundId);
+            if (fund == null)
+            {
+                TempData["Error"] = "Fund not found.";
+                return RedirectToAction("Index", "Funds");
+            }
+
+            // Calculate units based on NAV
+            decimal units = (decimal)amount / fund.NetAssetValue;
+
+            // Create FundInvestment
+            var investment = new FundInvestment
+            {
+                FundId = fundId,
+                UserId = userId,
+                Amount = amount,
+                BuyPrice = fund.NetAssetValue,
+                BuyDate = DateTime.Now,
+                Maturity = DateTime.Now.AddYears(1) // example: 1-year maturity
+            };
+
+            _context.FundInvestments.Add(investment);
+
+            // Deduct wallet balance
+            wallet.Balance -= amount;
+            wallet.LastUpdated = DateTime.Now;
+            _context.Wallets.Update(wallet);
+
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = $"Successfully invested ${amount:N0} in {fund.FundName} ({units:F2} units).";
+            return RedirectToAction("Details", "Funds", new { id = fundId });
+        }
+
     }
 }

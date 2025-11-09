@@ -274,8 +274,27 @@
         }
 </style>
 
+
+
 <div class="details-container">
     <!-- Back Button -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+
     <a href="@Url.Action("Index", "Funds")" class="back-button">
         ← Back to All Funds
     </a>
@@ -355,16 +374,72 @@
     <div class="action-section">
         @if (isLoggedIn)
         {
-            <!-- Show Invest Button if Logged In -->
-            <button class="btn invest-btn" onclick="alert('Hassan Nafees and shayan bhai fund investment banao.')">
-                 Invest in This Fund
-            </button>
+            <form asp-action="Invest" asp-controller="Funds" method="post" class="mt-3" id="investForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.FundId" />
+
+                <div class="info-section action-section" style="padding:2rem;">
+                    <h2 class="info-section-title"> Invest in @Model.FundName</h2>
+
+                    <form asp-action="Invest" asp-controller="Funds" method="post" class="mt-3" id="investForm">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.FundId" />
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="info-label">Amount to invest ($)</label>
+                                <input type="number" name="amount" class="form-control" min="1" required placeholder="Enter amount" id="investAmount" style="border-radius:12px; padding:0.8rem;" />
+                                <div class="form-text text-muted mt-1">NAV: $@Model.NetAssetValue.ToString("N2") per unit</div>
+                            </div>
+
+                            <div class="col-md-6 d-flex flex-column justify-content-end">
+                                <div class="mb-3">
+                                    <div class="info-label">Estimated Units</div>
+                                    <div id="estimatedUnits" style="font-weight:700; font-size:1.5rem; color:#1e90ff;">—</div>
+                                </div>
+                                <button type="submit" class="btn invest-btn w-100">
+                                    Invest Now
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+            </form>
+
+            @section Scripts {
+                <script>
+                    (function () {
+                        const nav = parseFloat('@Model.NetAssetValue'); // integer but treat as number
+                        const precision = 4;
+
+                        const amountInput = document.getElementById('investAmount');
+                        const est = document.getElementById('estimatedUnits');
+
+                        function updateEstimate() {
+                            const amount = parseFloat(amountInput.value || 0);
+                            if (!amount || amount <= 0) {
+                                est.textContent = '—';
+                                return;
+                            }
+                            const rawUnits = amount / nav;
+                            // truncate to precision (round down)
+                            const factor = Math.pow(10, precision);
+                            const units = Math.floor(rawUnits * factor) / factor;
+                            est.textContent = units.toFixed(precision);
+                        }
+
+                        amountInput.addEventListener('input', updateEstimate);
+                        updateEstimate();
+                    })();
+                </script>
+            }
+
         }
         else
         {
             <!-- Show Login Warning if NOT Logged In -->
             <div class="login-warning">
-                
                 <h3 class="login-warning-title">Login Required</h3>
                 <p class="login-warning-text">
                     You need to login to invest in this fund. Create an account or login to start investing!
@@ -379,6 +454,188 @@
             </div>
         }
     </div>
+
+
+    @{
+        
+        var userInvestments = ViewBag.UserInvestmentsForFund as List<WebApplication2.Models.FundInvestment> ?? new List<WebApplication2.Models.FundInvestment>();
+        const int PRECISION = 4; // must match server rounding/truncation policy
+    }
+
+    <style>
+       
+        .fund-investments-block {
+            background: linear-gradient(145deg, #071226, #050b14);
+            border-radius: 14px;
+            padding: 1rem;
+            border: 1px solid #122b4a;
+            margin-top: 1rem;
+        }
+
+        .fi-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .fi-title {
+            color: #1e90ff;
+            font-weight: 700;
+            font-size: 1.05rem;
+        }
+
+        .fi-sub {
+            color: #9aa4ae;
+            font-size: 0.9rem;
+        }
+
+        .fi-stats {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .fi-stat {
+            background: linear-gradient(145deg, #0a1a2f, #061323);
+            border: 1px solid #122b4a;
+            padding: 0.45rem 0.65rem;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+            .fi-stat .label {
+                color: #9aa4ae;
+                font-size: 0.72rem;
+                display: block;
+            }
+
+            .fi-stat .val {
+                color: #e9eef2;
+                font-weight: 700;
+                font-size: 0.95rem;
+            }
+
+        .fi-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0.6rem;
+        }
+
+            .fi-table thead th {
+                text-align: left;
+                padding: 0.7rem 0.6rem;
+                color: #1e90ff;
+                font-weight: 700;
+                font-size: 0.82rem;
+                border-bottom: 1px solid #122b4a;
+            }
+
+            .fi-table td {
+                padding: 0.6rem 0.6rem;
+                color: #e9eef2;
+                border-bottom: 1px solid #122b4a;
+                font-size: 0.95rem;
+            }
+
+        .empty-fi {
+            text-align: center;
+            padding: 1.2rem;
+            color: #9aa4ae;
+        }
+    </style>
+    @if (isLoggedIn)
+    {
+        <div class="fund-investments-block">
+        <div class="fi-header">
+            <div>
+                <div class="fi-title">Your investments in this fund</div>
+                <div class="fi-sub">A list of purchases you have made for <strong>@Model.FundName</strong></div>
+            </div>
+
+            <div class="fi-stats">
+                @{
+                    // compute totals
+                    decimal totalAmount = userInvestments.Sum(u => (decimal)u.Amount);
+                    decimal totalUnits = 0m;
+                    foreach (var inv in userInvestments)
+                    {
+                        if (inv.BuyPrice > 0)
+                        {
+                            decimal rawUnits = (decimal)inv.Amount / (decimal)inv.BuyPrice;
+                            decimal factor = (decimal)Math.Pow(10, PRECISION);
+                            decimal units = Math.Floor(rawUnits * factor) / factor;
+                            totalUnits += units;
+                        }
+                    }
+                }
+                <div class="fi-stat">
+                    <span class="label">Invested</span>
+                    <span class="val">@( "$" + ((int)totalAmount).ToString("N0") )</span>
+                </div>
+                <div class="fi-stat">
+                    <span class="label">Total Units</span>
+                    <span class="val">@totalUnits.ToString($"F{PRECISION}")</span>
+                </div>
+                <div class="fi-stat">
+                    <span class="label">Entries</span>
+                    <span class="val">@userInvestments.Count()</span>
+                </div>
+
+            </div>
+        </div>
+
+        @if (userInvestments.Any())
+        {
+            <div class="table-responsive">
+                <table class="fi-table">
+                    <thead>
+                        <tr>
+                            <th style="width:10%">#</th>
+                            <th style="width:20%">Amount</th>
+                            <th style="width:20%">Buy NAV</th>
+                            <th style="width:20%">Units</th>
+                            <th style="width:15%">Buy Date</th>
+                            <th style="width:15%">Maturity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var inv in userInvestments.OrderByDescending(i => i.BuyDate))
+                        {
+                            decimal units = 0m;
+                            if (inv.BuyPrice > 0)
+                            {
+                                decimal rawUnits = (decimal)inv.Amount / (decimal)inv.BuyPrice;
+                                decimal factor = (decimal)Math.Pow(10, PRECISION);
+                                units = Math.Floor(rawUnits * factor) / factor;
+                            }
+                            <tr>
+                                <td>#@inv.InvestmentId</td>
+                                <td>$@inv.Amount.ToString("N0")</td>
+                                <td>$@inv.BuyPrice.ToString("N2")</td>
+                                <td>@units.ToString($"F{PRECISION}")</td>
+                                <td>@inv.BuyDate.ToString("MMM dd, yyyy")</td>
+                                <td>@inv.Maturity.ToString("MMM dd, yyyy")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="empty-fi">
+                <div style="font-size:1.6rem; color:#1e90ff; opacity:0.16;">🧾</div>
+                <div style="margin-top:0.6rem">You have no investments in this fund yet.</div>
+                <div class="fi-sub" style="margin-top:0.35rem">Use the Invest form above to purchase units of <strong>@Model.FundName</strong>.</div>
+            </div>
+        }
+    </div>
+    }
+   
+
+
 
     <!-- Additional Info Section -->
     <div class="info-section" style="margin-top: 2rem;">

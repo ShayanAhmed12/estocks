@@ -232,6 +232,9 @@
     <h1 class="page-title display-4"> Investment Funds</h1>
     <p class="subtitle">Browse and compare all available investment funds</p>
 
+
+
+
     @if (Model != null && Model.Any())
     {
         <!-- Statistics Row -->
@@ -266,6 +269,68 @@
             </select>
             <button class="btn view-btn" onclick="resetFilters()">Reset</button>
         </div>
+
+
+            @* --- Show user's fund investments (if any) --- *@
+ 
+        @* --- User Fund Investments (paste here) --- *@
+
+        var userInvestments = ViewBag.UserInvestments as List<WebApplication2.Models.FundInvestment> ?? new List<WebApplication2.Models.FundInvestment>();
+        const int PRECISION = 4;
+
+
+        @if (userInvestments.Any())
+        {
+            <div class="table-card mb-3">
+                <div class="table-header">
+                    <h2>Your Fund Investments (@userInvestments.Count)</h2>
+                </div>
+                <div class="table-responsive p-3">
+                    <table class="funds-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Investment ID</th>
+                                <th>Fund</th>
+                                <th>Amount</th>
+                                <th>Buy Price (NAV)</th>
+                                <th>Units</th>
+                                <th>Buy Date</th>
+                                <th>Maturity</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var iv in userInvestments)
+                            {
+                                // compute units on the fly (decimal math in Razor)
+                                decimal units = 0m;
+                                if (iv.BuyPrice > 0)
+                                {
+                                    decimal rawUnits = (decimal)iv.Amount / (decimal)iv.BuyPrice;
+                                    decimal factor = (decimal)Math.Pow(10, PRECISION);
+                                    units = Math.Floor(rawUnits * factor) / factor; // truncate / round down
+                                }
+
+                                <tr>
+                                    <td>#@iv.InvestmentId</td>
+                                    <td><strong>@(iv.Fund?.FundName ?? "Unknown")</strong></td>
+                                    <td>$@iv.Amount.ToString("N0")</td>
+                                    <td>$@iv.BuyPrice.ToString("N0")</td>
+                                    <td>@units.ToString($"F{PRECISION}")</td>
+                                    <td>@iv.BuyDate.ToString("MMM dd, yyyy")</td>
+                                    <td>@iv.Maturity.ToString("MMM dd, yyyy")</td>
+                                    <td>
+                                        <a href="@Url.Action("Details", "Funds", new { id = iv.FundId })" class="view-btn">View Fund</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+
+
 
         <!-- Funds Table -->
         <div class="table-card">
