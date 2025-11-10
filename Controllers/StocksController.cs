@@ -82,8 +82,57 @@ namespace WebApplication2.Controllers
             ViewBag.UserWallet = userWallet;
             ViewBag.SelectedPeriod = period; // Pass selected period to view
 
+            // Get user's owned quantity for this stock if authenticated
+            int ownedQuantity = 0;
+            if (User.Identity.IsAuthenticated)
+            {
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!string.IsNullOrEmpty(userIdClaim) && int.TryParse(userIdClaim, out int userId))
+                {
+                    var ownedStock = await _context.Stocks
+                        .FirstOrDefaultAsync(s => s.CompanyName == quote.CompanyName && s.UserId == userId);
+
+                    if (ownedStock != null)
+                    {
+                        ownedQuantity = await _context.Transactions
+                            .Where(t => t.UserId == userId && t.StockId == ownedStock.StockId)
+                            .SumAsync(t => t.TransactionType == "BUY_SPOT" ? t.Quantity : -t.Quantity);
+                    }
+                }
+            }
+
+            ViewBag.OwnedQuantity = ownedQuantity;
+
+
             return View(quote);
         }
+
+        // GET: /Stocks/Portfolio - Display user's stock holdings
+        public async Task<IActionResult> Portfolio()
+        {
+            if (!User.Identity.IsAuthenticated)
+                return RedirectToAction("Login", "Users");
+
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+                return RedirectToAction("Login", "Users");
+
+            // Get all stocks owned by user with quantities
+            var portfolio = await _context.Transactions
+                .Where(t => t.UserId == userId)
+                .GroupBy(t => new { t.StockId, t.Stock.CompanyName })
+                .Select(g => new
+                {
+                    StockId = g.Key.StockId,
+                    CompanyName = g.Key.CompanyName,
+                    Quantity = g.Sum(t => t.TransactionType == "BUY_SPOT" ? t.Quantity : -t.Quantity)
+                })
+                .Where(p => p.Quantity > 0) // Only show stocks with positive quantity
+                .ToListAsync();
+
+            return View(portfolio);
+        }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -239,10 +288,21 @@ namespace WebApplication2.Controllers
             var ownedStock = await _context.Stocks
                 .FirstOrDefaultAsync(s => s.CompanyName == quote.CompanyName && s.UserId == userId);
 
-            // Note: You should track quantity owned. For now, we'll just check if they own it
             if (ownedStock == null)
             {
                 TempData["Error"] = "You don't own this stock.";
+                return RedirectToAction("Details", new { symbol });
+            }
+
+            // Calculate actual owned quantity from transactions
+            var ownedQuantity = await _context.Transactions
+                .Where(t => t.UserId == userId && t.StockId == ownedStock.StockId)
+                .SumAsync(t => t.TransactionType == "BUY_SPOT" ? t.Quantity : -t.Quantity);
+
+            // Validate user has enough shares to sell
+            if (ownedQuantity < quantity)
+            {
+                TempData["Error"] = $"Insufficient shares. You own {ownedQuantity} shares but tried to sell {quantity}.";
                 return RedirectToAction("Details", new { symbol });
             }
 
@@ -256,37 +316,59 @@ namespace WebApplication2.Controllers
                 return RedirectToAction("Details", new { symbol });
             }
 
-            // Add to wallet
-            wallet.Balance += totalRevenue;
-            wallet.LastUpdated = DateTime.Now;
-
-            // Create spot trading record
-            var spotTrade = new SpotTrading
+            try
             {
-                UserId = userId,
-                StockId = ownedStock.StockId,
-                Quantity = quantity,
-                Price = (int)quote.CurrentPrice,
-                TradeTime = DateTime.Now
-            };
-            _context.SpotTradings.Add(spotTrade);
+                // Add to wallet
+                wallet.Balance += totalRevenue;
+                wallet.LastUpdated = DateTime.Now;
 
-            // Create transaction record
-            var transaction = new Transaction
+                // Create spot trading record with negative quantity to indicate sell
+                var spotTrade = new SpotTrading
+                {
+                    UserId = userId,
+                    StockId = ownedStock.StockId,
+                    Quantity = -quantity, // Negative to indicate sell
+                    Price = (int)quote.CurrentPrice,
+                    TradeTime = DateTime.Now
+                };
+                _context.SpotTradings.Add(spotTrade);
+
+                // Create transaction record
+                var transaction = new Transaction
+                {
+                    WalletId = wallet.WalletId,
+                    UserId = userId,
+                    StockId = ownedStock.StockId,
+                    Quantity = quantity,
+                    TransactionType = "SELL_SPOT"
+                };
+                _context.Transactions.Add(transaction);
+
+                // Create an Order record for this sell
+                var order = new Order
+                {
+                    UserId = userId,
+                    StockId = ownedStock.StockId,
+                    OrderType = "spot_sell",
+                    Quantity = quantity,
+                    Price = (int)quote.CurrentPrice,
+                    OrderStatus = true
+                };
+                _context.Orders.Add(order);
+
+                await _context.SaveChangesAsync();
+
+                TempData["Success"] = $"Successfully sold {quantity} shares of {quote.CompanyName} for ${totalRevenue:N0}";
+            }
+            catch (Exception ex)
             {
-                WalletId = wallet.WalletId,
-                UserId = userId,
-                StockId = ownedStock.StockId,
-                Quantity = quantity,
-                TransactionType = "SELL_SPOT"
-            };
-            _context.Transactions.Add(transaction);
+                TempData["Error"] = "Failed to complete sale: " + ex.Message;
+                Console.WriteLine(ex);
+            }
 
-            await _context.SaveChangesAsync();
-
-            TempData["Success"] = $"Successfully sold {quantity} shares of {quote.CompanyName} for ${totalRevenue:N0}";
             return RedirectToAction("Details", new { symbol });
         }
+
 
         // POST: /Stocks/BuyFuture
         [HttpPost]
@@ -368,3 +450,4 @@ namespace WebApplication2.Controllers
         }
     }
 }
+

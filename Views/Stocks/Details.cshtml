@@ -392,6 +392,12 @@
 
                         <hr style="border-color: #1c2a3d;">
 
+                        <!-- owned shares -->
+                        <div class="alert alert-info mb-3">
+                            <strong>Your Holdings:</strong> @ViewBag.OwnedQuantity shares
+                        </div>
+
+
                         <!-- Sell Form -->
                         <form asp-action="SellSpot" method="post">
                             @Html.AntiForgeryToken()
