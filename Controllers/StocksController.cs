@@ -352,7 +352,7 @@ namespace WebApplication2.Controllers
                     OrderType = "spot_sell",
                     Quantity = quantity,
                     Price = (int)quote.CurrentPrice,
-                    OrderStatus = true
+                    OrderStatus = false
                 };
                 _context.Orders.Add(order);
 
