@@ -249,11 +249,11 @@
             </div>
             <div class="stat-box">
                 <div class="stat-label">Avg NAV</div>
-                <div class="stat-value">$@Model.Average(f => f.NetAssetValue).ToString("N0")</div>
+                <div class="stat-value">@Model.Average(f => f.NetAssetValue).ToString("N0") PKR</div>
             </div>
             <div class="stat-box">
                 <div class="stat-label">Total NAV</div>
-                <div class="stat-value">$@Model.Sum(f => f.NetAssetValue).ToString("N0")</div>
+                <div class="stat-value">@Model.Sum(f => f.NetAssetValue).ToString("N0") PKR</div>
             </div>
         </div>
 
@@ -314,8 +314,8 @@
                                 <tr>
                                     <td>#@iv.InvestmentId</td>
                                     <td><strong>@(iv.Fund?.FundName ?? "Unknown")</strong></td>
-                                    <td>$@iv.Amount.ToString("N0")</td>
-                                    <td>$@iv.BuyPrice.ToString("N0")</td>
+                                    <td>@iv.Amount.ToString("N0") PKR</td>
+                                    <td>@iv.BuyPrice.ToString("N0") PKR</td>
                                     <td>@units.ToString($"F{PRECISION}")</td>
                                     <td>@iv.BuyDate.ToString("MMM dd, yyyy")</td>
                                     <td>@iv.Maturity.ToString("MMM dd, yyyy")</td>
@@ -363,7 +363,7 @@
                                     <span class="fund-type-badge">@fund.FundType</span>
                                 </td>
                                 <td>
-                                    <div class="nav-value">$@fund.NetAssetValue.ToString("N2")</div>
+                                    <div class="nav-value">@fund.NetAssetValue.ToString("N2") PKR</div>
                                 </td>
                                 <td>
                                     <div class="consolidator-text">@fund.Consolidator</div>

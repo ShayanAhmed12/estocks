@@ -344,7 +344,7 @@
                                 <td>@(o.StockId?.ToString() ?? "—")</td>
                                 <td>@o.OrderType</td>
                                 <td>@o.Quantity</td>
-                                <td>$@o.Price.ToString("N0")</td>
+                                <td>@o.Price.ToString("N0") PKR</td>
                                 <td><span class="@statusClass">@(o.OrderStatus ? "Open" : "Closed")</span></td>
                                 <td style="text-align:right">
                                     <button class="view-btn" type="button" data-bs-toggle="modal" data-bs-target="#orderDetailsModal"

@@ -308,7 +308,7 @@
         <!-- NAV Highlight -->
         <div class="stats-highlight">
             <div class="stats-highlight-title">Current Net Asset Value</div>
-            <div class="stats-highlight-value">$@Model.NetAssetValue.ToString("N2")</div>
+            <div class="stats-highlight-value">@Model.NetAssetValue.ToString("N2") PKR</div>
             <p style="color: #9aa4ae; margin-top: 0.5rem; margin-bottom: 0;">per unit</p>
         </div>
     </div>
@@ -319,7 +319,7 @@
             <div class="detail-card-title">
                  Net Asset Value
             </div>
-            <div class="detail-card-value">$@Model.NetAssetValue.ToString("N2")</div>
+            <div class="detail-card-value">@Model.NetAssetValue.ToString("N2") PKR</div>
             <p style="color: #9aa4ae; margin-top: 0.5rem; margin-bottom: 0;">Current NAV per unit</p>
         </div>
 
@@ -356,7 +356,7 @@
 
         <div class="info-row">
             <span class="info-label">Net Asset Value (NAV)</span>
-            <span class="info-value" style="color: #28a745;">$@Model.NetAssetValue.ToString("N2")</span>
+            <span class="info-value" style="color: #28a745;">@Model.NetAssetValue.ToString("N2") PKR</span>
         </div>
 
         <div class="info-row">
@@ -389,7 +389,7 @@
                             <div class="col-md-6">
                                 <label class="info-label">Amount to invest (PKR)</label>
                                 <input type="number" name="amount" class="form-control" min="1" required placeholder="Enter amount" id="investAmount" style="border-radius:12px; padding:0.8rem;" />
-                                <div class="form-text text-muted mt-1">NAV: $@Model.NetAssetValue.ToString("N2") per unit</div>
+                                <div class="form-text text-muted mt-1">NAV: @Model.NetAssetValue.ToString("N2") per unit PKR</div>
                             </div>
 
                             <div class="col-md-6 d-flex flex-column justify-content-end">
@@ -572,7 +572,7 @@
                 }
                 <div class="fi-stat">
                     <span class="label">Invested</span>
-                    <span class="val">@( "$" + ((int)totalAmount).ToString("N0") )</span>
+                    <span class="val">@(((int)totalAmount).ToString("N0") + " PKR" )</span>
                 </div>
                 <div class="fi-stat">
                     <span class="label">Total Units</span>
@@ -612,8 +612,8 @@
                             }
                             <tr>
                                 <td>#@inv.InvestmentId</td>
-                                <td>$@inv.Amount.ToString("N0")</td>
-                                <td>$@inv.BuyPrice.ToString("N2")</td>
+                                <td>@inv.Amount.ToString("N0") PKR</td>
+                                <td>@inv.BuyPrice.ToString("N2") PKR</td>
                                 <td>@units.ToString($"F{PRECISION}")</td>
                                 <td>@inv.BuyDate.ToString("MMM dd, yyyy")</td>
                                 <td>@inv.Maturity.ToString("MMM dd, yyyy")</td>
