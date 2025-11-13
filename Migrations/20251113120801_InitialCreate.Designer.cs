@@ -12,7 +12,7 @@ using WebApplication2.Data;
 namespace WebApplication2.Migrations
 {
     [DbContext(typeof(EstocksDbContext))]
-    [Migration("20251023164424_InitialCreate")]
+    [Migration("20251113120801_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

@@ -3,20 +3,13 @@
 @{
     ViewData["Title"] = "My Wallet";
 
+    // Get values from ViewBag (calculated in controller)
+    int totalInvestment = ViewBag.TotalInvestment ?? 0;
+    int currentValue = ViewBag.CurrentValue ?? 0;
+    int profitLoss = ViewBag.ProfitLoss ?? 0;
+
     // Get user's stocks for display
-    var userStocks = Model.User?.Stocks?.ToList() ?? new List<WebApplication2.Models.Stock>();
-
-    // Calculate portfolio statistics
-    int totalInvestment = 0;
-    int currentValue = 0;
-
-    foreach (var stock in userStocks)
-    {
-        currentValue += stock.Price;
-        totalInvestment += stock.Price; // Adjust if you have purchase price
-    }
-
-    int profitLoss = currentValue - totalInvestment;
+    var userStocks = ViewBag.UserStocks as List<WebApplication2.Models.Stock> ?? new List<WebApplication2.Models.Stock>();
 }
 
 <style>
@@ -53,7 +46,7 @@
     }
 
     .stat-card {
-        background: linear-gradient(145deg, #122b4a, #0a1a2f);
+        background: linear-gradient(145deg, #0a1a2f, #050505);
         border-radius: 15px;
         padding: 1.5rem;
         border: 1px solid #1c2a3d;
@@ -61,7 +54,8 @@
     }
 
         .stat-card:hover {
-            transform: translateY(-3px);
+            transform: translateY(-5px);
+            box-shadow: 0 12px 35px rgba(30, 144, 255, 0.18);
         }
 
     .stat-label {
@@ -85,11 +79,31 @@
         color: #dc3545;
     }
 
-    .stock-table {
+    .table-card {
         background: linear-gradient(145deg, #0a1a2f, #050505);
-        border-radius: 15px;
+        border-radius: 20px;
         overflow: hidden;
+        box-shadow: 0 8px 25px rgba(30, 144, 255, 0.1);
         border: 1px solid #1c2a3d;
+        padding: 0;
+    }
+
+    .table-header {
+        background: linear-gradient(135deg, #122b4a, #0a1a2f);
+        padding: 1.5rem 2rem;
+        border-bottom: 2px solid #1c2a3d;
+    }
+
+        .table-header h3 {
+            color: #1e90ff;
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+    .stock-table {
+        width: 100%;
+        margin: 0;
     }
 
         .stock-table thead {
@@ -99,19 +113,67 @@
         .stock-table th {
             color: #1e90ff;
             font-weight: 600;
-            padding: 1rem;
+            padding: 1.2rem 1.5rem;
             border-bottom: 2px solid #1c2a3d;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
         }
 
         .stock-table td {
-            padding: 1rem;
+            padding: 1.5rem;
             color: #e9eef2;
             border-bottom: 1px solid #1c2a3d;
+            vertical-align: middle;
         }
 
-        .stock-table tbody tr:hover {
-            background: rgba(30, 144, 255, 0.05);
+        .stock-table tbody tr {
+            transition: all 0.2s ease;
         }
+
+            .stock-table tbody tr:hover {
+                background: rgba(30, 144, 255, 0.08);
+                transform: scale(1.01);
+            }
+
+    .company-name-cell {
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: #e9eef2;
+    }
+
+    .stock-id {
+        color: #9aa4ae;
+        font-size: 0.9rem;
+        margin-top: 0.3rem;
+    }
+
+    .price-value {
+        color: #28a745;
+        font-size: 1.2rem;
+        font-weight: bold;
+    }
+
+    .view-btn {
+        background: linear-gradient(135deg, #1e90ff, #0073e6);
+        color: white;
+        border: none;
+        padding: 0.6rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+        cursor: pointer;
+    }
+
+        .view-btn:hover {
+            background: linear-gradient(135deg, #0073e6, #005bb5);
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(30, 144, 255, 0.3);
+            color: white;
+        }
+
 
     .add-funds-btn {
         border-radius: 30px;
@@ -142,6 +204,35 @@
 
     .modal-footer {
         border-top: 1px solid #1c2a3d;
+    }
+
+    .detail-card {
+        background: linear-gradient(145deg, #122b4a, #0a1a2f);
+        border-radius: 15px;
+        padding: 1rem;
+        border: 1px solid #1c2a3d;
+        margin-bottom: 1rem;
+    }
+
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #1c2a3d;
+    }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+    .detail-label {
+        color: #9aa4ae;
+        font-size: 0.9rem;
+    }
+
+    .detail-value {
+        color: #e9eef2;
+        font-weight: 600;
     }
 
     .form-control {
@@ -237,39 +328,93 @@
                 @if (totalInvestment > 0)
                 {
                     var percentage = (profitLoss / (double)totalInvestment) * 100;
-                    <p class="text-muted mt-2">@percentage.ToString("F2")%</p>
+                    <small class="text-muted">@percentage.ToString("F2")%</small>
                 }
             </div>
         </div>
     </div>
 
+    
     <!-- Stocks Portfolio -->
-    <div class="wallet-card">
-        <h3 class="mb-4" style="color: #1e90ff;">My Stocks Portfolio</h3>
+    <h2 style="color: #1e90ff; font-weight: bold; margin-bottom: 1.5rem; margin-top: 2rem;">My Stocks Portfolio</h2>
 
+    <div class="table-card">
         @if (userStocks != null && userStocks.Any())
         {
             <div class="table-responsive">
                 <table class="table stock-table mb-0">
                     <thead>
                         <tr>
-                            <th>Stock ID</th>
-                            <th>Company Name</th>
-                            <th>Current Price</th>
-                            <th>Actions</th>
+                            <th>STOCK ID</th>
+                            <th>COMPANY NAME</th>
+                            <th>BUY PRICE</th>
+                            <th>ACTION</th>
                         </tr>
                     </thead>
                     <tbody>
+                    
                         @foreach (var stock in userStocks)
                         {
                             <tr>
-                                <td>#@stock.StockId</td>
-                                <td><strong>@stock.CompanyName</strong></td>
-                                <td>$@stock.Price.ToString("N0")</td>
+                                <td style="color: #9aa4ae;">#@stock.StockId</td>
                                 <td>
-                                    <a href="#" class="btn btn-sm btn-outline-primary">View Details</a>
+                                    <div class="company-name-cell">@stock.CompanyName</div>
+                                </td>
+                                <td>
+                                    <div class="price-value">$@stock.Price.ToString("N0")</div>
+                                </td>
+                                <td>
+                                    <button class="view-btn" data-bs-toggle="modal" data-bs-target="#stockModal@(stock.StockId)">
+                                        View →
+                                    </button>
                                 </td>
                             </tr>
+
+                            <!-- Stock Details Modal -->
+                            <div class="modal fade" id="stockModal@(stock.StockId)" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" style="color: #1e90ff;">@stock.CompanyName Details</h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="detail-card">
+                                                <div class="detail-row">
+                                                    <span class="detail-label">Stock ID</span>
+                                                    <span class="detail-value">#@stock.StockId</span>
+                                                </div>
+                                                <div class="detail-row">
+                                                    <span class="detail-label">Company Name</span>
+                                                    <span class="detail-value">@stock.CompanyName</span>
+                                                </div>
+                                                <div class="detail-row">
+                                                    <span class="detail-label">Current Price</span>
+                                                    <span class="detail-value" style="color: #28a745;">$@stock.Price.ToString("N0")</span>
+                                                </div>
+                                                @{
+                                                    var buyQty = ViewBag.StockQuantities != null && ViewBag.StockQuantities.ContainsKey(stock.StockId)
+                                                    ? ViewBag.StockQuantities[stock.StockId] : 0;
+                                                }
+                                                <div class="detail-row">
+                                                    <span class="detail-label">Shares Owned</span>
+                                                    <span class="detail-value">@buyQty shares</span>
+                                                </div>
+                                                <div class="detail-row">
+                                                    <span class="detail-label">Total Value</span>
+                                                    <span class="detail-value" style="color: #1e90ff;">$@((stock.Price * buyQty).ToString("N0"))</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                            <a href="@Url.Action("Details", "Stocks", new { symbol = stock.CompanyName })" class="btn btn-primary">
+                                                Trade This Stock
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         }
                     </tbody>
                 </table>
@@ -281,11 +426,11 @@
                 <div class="mb-3">📊</div>
                 <h5>No Stocks Yet</h5>
                 <p>Start investing to see your portfolio here.</p>
-                <a href="#" class="btn btn-primary mt-3">Browse Stocks</a>
+                <a href="@Url.Action("Index", "Stocks")" class="btn btn-primary mt-3">Browse Stocks</a>
             </div>
         }
     </div>
-</div>
+
 
 <!-- Add Funds Modal -->
 <div class="modal fade" id="addFundsModal" tabindex="-1" aria-labelledby="addFundsModalLabel" aria-hidden="true">

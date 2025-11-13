@@ -59,9 +59,72 @@ namespace WebApplication2.Controllers
                 await _context.SaveChangesAsync();
             }
 
+            // Calculate portfolio values and stock quantities
+            double totalInvestment = 0;
+            double currentValue = 0;
+            var stockQuantities = new Dictionary<int, int>();
+
+            // Get all user's stocks
+            var userStocks = await _context.Stocks
+                .Where(s => s.UserId == userId)
+                .ToListAsync();
+
+            foreach (var stock in userStocks)
+            {
+                // Get total quantity owned (buy orders - sell orders)
+                var buyQuantity = await _context.Orders
+                    .Where(o => o.UserId == userId && o.StockId == stock.StockId && o.OrderType == "spot_buy")
+                    .SumAsync(o => (int?)o.Quantity) ?? 0;
+
+                var sellQuantity = await _context.Orders
+                    .Where(o => o.UserId == userId && o.StockId == stock.StockId && o.OrderType == "spot_sell")
+                    .SumAsync(o => (int?)o.Quantity) ?? 0;
+
+                int ownedQuantity = buyQuantity - sellQuantity;
+                stockQuantities[stock.StockId] = ownedQuantity;
+
+                if (ownedQuantity > 0)
+                {
+                    // Calculate total investment (purchase price * quantity)
+                    var buyOrders = await _context.Orders
+                        .Where(o => o.UserId == userId && o.StockId == stock.StockId && o.OrderType == "spot_buy")
+                        .ToListAsync();
+
+                    foreach (var order in buyOrders)
+                    {
+                        totalInvestment += order.Price * order.Quantity;
+                    }
+
+                    // Subtract sell value from investment
+                    var sellOrders = await _context.Orders
+                        .Where(o => o.UserId == userId && o.StockId == stock.StockId && o.OrderType == "spot_sell")
+                        .ToListAsync();
+
+                    foreach (var order in sellOrders)
+                    {
+                        totalInvestment -= order.Price * order.Quantity;
+                    }
+
+                    // Calculate current value using current stock price
+                    currentValue += stock.Price * ownedQuantity;
+                }
+            }
+
+            // Calculate profit/loss
+            double profitLoss = currentValue - totalInvestment;
+
+            // Pass calculated values to view
+            ViewBag.TotalInvestment = (int)totalInvestment;
+            ViewBag.CurrentValue = (int)currentValue;
+            ViewBag.ProfitLoss = (int)profitLoss;
+            ViewBag.UserStocks = userStocks;
+            ViewBag.StockQuantities = stockQuantities; // For modal details
+
             // Pass the wallet to the view
             return View(wallet);
         }
+
+
 
         // POST: Wallets/AddFunds
         [HttpPost]
