@@ -63,13 +63,14 @@ namespace WebApplication2.Controllers
             double totalInvestment = 0;
             double currentValue = 0;
             var stockQuantities = new Dictionary<int, int>();
+            var ownedStocksList = new List<Stock>(); // Only stocks with positive quantity
 
             // Get all user's stocks
-            var userStocks = await _context.Stocks
+            var allUserStocks = await _context.Stocks
                 .Where(s => s.UserId == userId)
                 .ToListAsync();
 
-            foreach (var stock in userStocks)
+            foreach (var stock in allUserStocks)
             {
                 // Get total quantity owned (buy orders - sell orders)
                 var buyQuantity = await _context.Orders
@@ -83,8 +84,11 @@ namespace WebApplication2.Controllers
                 int ownedQuantity = buyQuantity - sellQuantity;
                 stockQuantities[stock.StockId] = ownedQuantity;
 
+                // Only include stocks with positive owned quantity
                 if (ownedQuantity > 0)
                 {
+                    ownedStocksList.Add(stock); // Add to display list
+
                     // Calculate total investment (purchase price * quantity)
                     var buyOrders = await _context.Orders
                         .Where(o => o.UserId == userId && o.StockId == stock.StockId && o.OrderType == "spot_buy")
@@ -117,12 +121,13 @@ namespace WebApplication2.Controllers
             ViewBag.TotalInvestment = (int)totalInvestment;
             ViewBag.CurrentValue = (int)currentValue;
             ViewBag.ProfitLoss = (int)profitLoss;
-            ViewBag.UserStocks = userStocks;
+            ViewBag.UserStocks = ownedStocksList; // Only stocks with positive quantity
             ViewBag.StockQuantities = stockQuantities; // For modal details
 
             // Pass the wallet to the view
             return View(wallet);
         }
+
 
 
 
