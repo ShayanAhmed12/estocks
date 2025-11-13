@@ -274,7 +274,7 @@
 
         <div class="summary-card">
             <div class="summary-label">Total Value</div>
-            <div class="summary-value">$@totalValue.ToString("N0")</div>
+            <div class="summary-value">@totalValue.ToString("N0") PKR</div>
             <div class="muted">Sum of (quantity × price)</div>
         </div>
 
@@ -464,7 +464,7 @@
                     document.getElementById('modalStockId').textContent = data.StockId ?? '—';
                     document.getElementById('modalType').textContent = data.OrderType ?? data.Type ?? '—';
                     document.getElementById('modalQty').textContent = data.Quantity ?? '—';
-                    document.getElementById('modalPrice').textContent = '$' + (data.Price ?? 0).toLocaleString();
+                    document.getElementById('modalPrice').textContent =  (data.Price ?? 0).toLocaleString()+ ' PKR';
                     document.getElementById('modalStatus').textContent = data.Status ?? (data.OrderStatus ? 'Open' : 'Closed');
                 } catch (err) {
                     console.error('Failed parsing order data:', err);

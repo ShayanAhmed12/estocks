@@ -248,7 +248,7 @@
    
     <div class="wallet-card text-center">
         <p class="stat-label mb-2">Current Balance</p>
-        <div class="balance-display">$@Model.Balance.ToString("N0")</div>
+        <div class="balance-display">@Model.Balance.ToString("N0") PKR</div>
         <p class="text-muted mt-2">Last updated: @Model.LastUpdated.ToString("MMM dd, yyyy hh:mm tt")</p>
         <button type="button" class="btn add-funds-btn mt-3" data-bs-toggle="modal" data-bs-target="#addFundsModal">
             + Add Funds
@@ -260,13 +260,13 @@
         <div class="col-md-4 mb-3">
             <div class="stat-card text-center">
                 <p class="stat-label">Total Investment</p>
-                <div class="stat-value">$@totalInvestment.ToString("N0")</div>
+                <div class="stat-value">@totalInvestment.ToString("N0") PKR</div>
             </div>
         </div>
         <div class="col-md-4 mb-3">
             <div class="stat-card text-center">
                 <p class="stat-label">Current Value</p>
-                <div class="stat-value">$@currentValue.ToString("N0")</div>
+                <div class="stat-value">@currentValue.ToString("N0") PKR</div>
             </div>
         </div>
         <div class="col-md-4 mb-3">
@@ -306,7 +306,7 @@
                             <tr>
                                 <td style="color: #9aa4ae;">#@stock.StockId</td>
                                 <td><div class="company-name-cell">@stock.CompanyName</div></td>
-                                <td><div class="price-value">@stock.Price.ToString("N0")PKR</div></td>
+                                <td><div class="price-value">@stock.Price.ToString("N0") PKR</div></td>
                                 <td>
                                     <button class="view-btn" data-bs-toggle="modal" data-bs-target="#stockModal@(stock.StockId)">
                                         View →
@@ -352,7 +352,7 @@
                                     </div>
                                     <div class="detail-row">
                                         <span class="detail-label">Total Value</span>
-                                        <span class="detail-value" style="color: #1e90ff;">$@((stock.Price * buyQty).ToString("N0"))</span>
+                                        <span class="detail-value" style="color: #1e90ff;">@((stock.Price * buyQty).ToString("N0")) PKR</span>
                                     </div>
                                 </div>
                             </div>
@@ -392,7 +392,7 @@
                     <div class="mb-3">
                         <label for="amount" class="form-label">Amount (PKR)</label>
                         <input type="number" class="form-control" id="amount" name="amount" placeholder="Enter amount" min="1" required>
-                        <div class="form-text" style="color: #9aa4ae;">Minimum amount: 1PKR</div>
+                        <div class="form-text" style="color: #9aa4ae;">Minimum amount: 1 PKR</div>
                     </div>
                     <div class="quick-amounts mb-3">
                         <label class="form-label">Quick Select:</label>
