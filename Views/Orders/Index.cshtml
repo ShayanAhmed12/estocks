@@ -14,21 +14,164 @@
 
 <style>
     body {
-        background: linear-gradient(135deg, #050505, #071226);
+        background: linear-gradient(135deg, #050505, #0a1a2f);
         font-family: 'Segoe UI', sans-serif;
     }
 
     .orders-container {
-        max-width: 1200px;
-        margin: 2.5rem auto;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
     }
 
     .page-title {
         color: #1e90ff;
-        font-weight: 700;
-        margin-bottom: 1rem;
-        text-shadow: 0 0 10px rgba(30, 144, 255, 0.12);
+        font-weight: bold;
+        margin-bottom: 2rem;
+        text-shadow: 0 0 10px rgba(30, 144, 255, 0.2);
     }
+
+
+    .orders-card {
+        background: linear-gradient(145deg, #0a1a2f, #050505);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 8px 25px rgba(30, 144, 255, 0.1);
+        border: 1px solid #1c2a3d;
+        padding: 1rem;
+    }
+
+  
+    .table-header {
+        background: linear-gradient(135deg, #122b4a, #0a1a2f);
+        padding: 1.5rem 2rem;
+        border-bottom: 2px solid #1c2a3d;
+    }
+
+    .table-header h2 {
+        color: #1e90ff;
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    /* Table */
+    .orders-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .orders-table thead {
+        background: #122b4a;
+    }
+
+    .orders-table th {
+        color: #1e90ff;
+        font-weight: 600;
+        padding: 1.2rem 1.5rem;
+        border-bottom: 2px solid #1c2a3d;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 1px;
+    }
+
+    .orders-table td {
+        padding: 1.5rem;
+        color: #e9eef2;
+        border-bottom: 1px solid #1c2a3d;
+        vertical-align: middle;
+    }
+
+    .orders-table tbody tr {
+        transition: all 0.2s ease;
+    }
+
+    .orders-table tbody tr:hover {
+        background: rgba(30, 144, 255, 0.08);
+        transform: scale(1.01);
+    }
+
+    /* Badges */
+    .badge-open {
+        background: rgba(40,167,69,0.15);
+        color: #28a745;
+        border-radius: 20px;
+        padding: 0.4rem 1rem;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        border: 1px solid rgba(40,167,69,0.2);
+        letter-spacing: 0.5px;
+    }
+
+    .badge-closed {
+        background: rgba(220,53,69,0.12);
+        color: #dc3545;
+        border-radius: 20px;
+        padding: 0.4rem 1rem;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        border: 1px solid rgba(220,53,69,0.2);
+        letter-spacing: 0.5px;
+    }
+
+    /* Buttons */
+    .view-btn {
+        background: linear-gradient(135deg, #1e90ff, #0073e6);
+        color: white;
+        border: none;
+        padding: 0.6rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .view-btn:hover {
+        background: linear-gradient(135deg, #0073e6, #005bb5);
+        transform: scale(1.05);
+        box-shadow: 0 4px 15px rgba(30, 144, 255, 0.3);
+        color: white;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #9aa4ae;
+    }
+
+    .empty-state i {
+        font-size: 5rem;
+        color: #1e90ff;
+        opacity: 0.3;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Modal Consistency */
+    .modal-content {
+        background: linear-gradient(145deg, #0a1a2f, #050505);
+        border: 1px solid #1c2a3d;
+        color: #e9eef2;
+        border-radius: 12px;
+    }
+
+    .modal-header {
+        border-bottom: 1px solid #1c2a3d;
+    }
+
+    .modal-footer {
+        border-top: 1px solid #1c2a3d;
+    }
+
+    .muted {
+        color: #9aa4ae;
+        font-size: 0.9rem;
+    }
+  
+
 
     .summary-row {
         display: grid;
@@ -63,12 +206,6 @@
         color: #1e90ff;
     }
 
-    .orders-card {
-        background: linear-gradient(145deg, #071226, #050b14);
-        border-radius: 14px;
-        padding: 1rem;
-        border: 1px solid #122b4a;
-    }
 
     .controls-row {
         display: flex;
@@ -102,99 +239,6 @@
         border-radius: 10px;
     }
 
-    .orders-table {
-        width: 100%;
-        border-collapse: collapse;
-        overflow: hidden;
-        border-radius: 10px;
-    }
-
-    .orders-table thead {
-        background: #0f2a44;
-    }
-
-    .orders-table th, .orders-table td {
-        padding: 0.9rem 0.8rem;
-        color: #e9eef2;
-        border-bottom: 1px solid #122b4a;
-        text-align: left;
-        font-size: 0.95rem;
-    }
-
-    .orders-table th {
-        color: #1e90ff;
-        font-weight: 700;
-        font-size: 0.9rem;
-        letter-spacing: 0.6px;
-    }
-
-    .orders-table tbody tr:hover {
-        background: rgba(30, 144, 255, 0.035);
-    }
-
-    .badge-open {
-        background: rgba(40,167,69,0.12);
-        color: #28a745;
-        border-radius: 999px;
-        padding: 0.25rem 0.6rem;
-        font-weight: 700;
-        font-size: 0.8rem;
-        border: 1px solid rgba(40,167,69,0.15);
-    }
-
-    .badge-closed {
-        background: rgba(220,53,69,0.08);
-        color: #dc3545;
-        border-radius: 999px;
-        padding: 0.25rem 0.6rem;
-        font-weight: 700;
-        font-size: 0.8rem;
-        border: 1px solid rgba(220,53,69,0.12);
-    }
-
-    .view-btn {
-        background: transparent;
-        border: 1px solid #1c2a3d;
-        color: #1e90ff;
-        padding: 0.4rem 0.6rem;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: 600;
-    }
-
-    .empty-state {
-        text-align: center;
-        padding: 3rem;
-        color: #9aa4ae;
-        border-radius: 12px;
-    }
-
-    .empty-emoji {
-        font-size: 3.2rem;
-        color: #1e90ff;
-        opacity: 0.18;
-    }
-
-    /* Modal styles override */
-    .modal-content {
-        background: linear-gradient(145deg, #071226, #050b14);
-        border: 1px solid #122b4a;
-        color: #e9eef2;
-        border-radius: 12px;
-    }
-
-    .modal-header {
-        border-bottom: 1px solid #122b4a;
-    }
-
-    .modal-footer {
-        border-top: 1px solid #122b4a;
-    }
-
-    .muted {
-        color: #9aa4ae;
-        font-size: 0.9rem;
-    }
 </style>
 
 <div class="orders-container">
