@@ -273,7 +273,7 @@
             <div class="stat-card text-center">
                 <p class="stat-label">Profit / Loss</p>
                 <div class="stat-value @(profitLoss >= 0 ? "profit" : "loss")">
-                    @(profitLoss >= 0 ? "+" : "")$@profitLoss.ToString("N0")
+                    @(profitLoss >= 0 ? "+" : "")@profitLoss.ToString("N0") PKR
                 </div>
                 @if (totalInvestment > 0)
                 {
