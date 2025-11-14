@@ -342,7 +342,36 @@
                                 <td>#@o.OrderId</td>
                                 <td><strong>@company</strong></td>
                                 <td>@(o.StockId?.ToString() ?? "—")</td>
-                                <td>@o.OrderType</td>
+                                <td>
+                                    @if (o.OrderType == "spot_buy" || o.OrderType == "BUY_SPOT")
+                                    {
+                                        <span style="background: rgba(40, 167, 69, 0.15); color: #28a745; padding: 0.4rem 0.8rem; border-radius: 20px; font-weight: 600; font-size: 0.85rem; display: inline-block;">
+                                            Spot Buy
+                                        </span>
+                                    }
+                                    else if (o.OrderType == "spot_sell" || o.OrderType == "SELL_SPOT")
+                                    {
+                                        <span style="background: rgba(220, 53, 69, 0.15); color: #dc3545; padding: 0.4rem 0.8rem; border-radius: 20px; font-weight: 600; font-size: 0.85rem; display: inline-block;">
+                                            Spot Sell
+                                        </span>
+                                    }
+                                    else if (o.OrderType == "future_long")
+                                    {
+                                        <span style="background:  rgba(40, 167, 69, 0.15); color: #28a745; padding: 0.4rem 0.8rem; border-radius: 20px; font-weight: 600; font-size: 0.85rem; display: inline-block;">
+                                            Future Long
+                                        </span>
+                                    }
+                                    else if (o.OrderType == "future_short")
+                                    {
+                                        <span style="background: rgba(220, 53, 69, 0.15); color: #dc3545; padding: 0.4rem 0.8rem; border-radius: 20px; font-weight: 600; font-size: 0.85rem; display: inline-block;">
+                                            Future Short
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span>@o.OrderType</span>
+                                    }
+                                </td>
                                 <td>@o.Quantity</td>
                                 <td>@o.Price.ToString("N0") PKR</td>
                                 <td><span class="@statusClass">@(o.OrderStatus ? "Open" : "Closed")</span></td>
@@ -369,7 +398,7 @@
         else
         {
             <div class="empty-state">
-                <div class="empty-emoji">🧾</div>
+                <div class="empty-emoji"></div>
                 <h5 class="mt-3">No Orders Found</h5>
                 <p class="muted">You don't have any orders yet. Make a trade to see orders listed here.</p>
                 <a asp-controller="Stocks" asp-action="Index" class="btn btn-primary mt-2">Browse Stocks</a>

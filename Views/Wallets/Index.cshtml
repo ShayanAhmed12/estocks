@@ -370,13 +370,312 @@
         else
         {
             <div class="empty-state">
-                <div class="mb-3">📊</div>
+                <div class="mb-3"></div>
                 <h5>No Stocks Yet</h5>
                 <p>Start investing to see your portfolio here.</p>
                 <a href="@Url.Action("Index", "Stocks")" class="btn btn-primary mt-3">Browse Stocks</a>
             </div>
         }
     </div>
+
+
+
+    <!-- Active Futures Positions Section -->
+    <h2 style="color: #1e90ff; font-weight: bold; margin-bottom: 1.5rem; margin-top: 2rem;">
+        Active Futures Positions 
+    </h2>
+
+    <div class="table-card">
+
+        @{
+            var futureTradings = ViewBag.FutureTradings as List<WebApplication2.Models.FutureTrading>
+            ?? new List<WebApplication2.Models.FutureTrading>();
+            int futuresMarginHeld = ViewBag.FuturesMarginHeld ?? 0;
+            int futuresUnrealizedPL = ViewBag.FuturesUnrealizedPL ?? 0;
+        }
+
+        <!-- SUMMARY BAR -->
+        @if (futuresMarginHeld > 0)
+        {
+            <div style="padding: 1.5rem 2rem; background: rgba(18, 43, 74, 0.3); border-bottom: 1px solid #1c2a3d;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+                    <div>
+                        <div style="color: #9aa4ae; font-size: 0.85rem; margin-bottom: 0.5rem;">Margin Held</div>
+                        <div style="color: #e9eef2; font-size: 1.5rem; font-weight: 600;">
+                            @futuresMarginHeld.ToString("N0") PKR
+                        </div>
+                    </div>
+                    <div>
+                        <div style="color: #9aa4ae; font-size: 0.85rem; margin-bottom: 0.5rem;">Unrealized P&L</div>
+                        <div style="color: @(futuresUnrealizedPL >= 0 ? "#28a745" : "#dc3545"); font-size: 1.5rem; font-weight: 600;">
+                            @(futuresUnrealizedPL >= 0 ? "+" : "")@futuresUnrealizedPL.ToString("N0") PKR
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- FUTURES TABLE -->
+        @if (futureTradings.Any())
+        {
+            <div class="table-responsive">
+                <table class="stock-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Contract</th>
+                            <th>Type</th>
+                            <th>Company</th>
+                            <th>Qty</th>
+                            <th>Entry</th>
+                            <th>Current</th>
+                            <th>P/L</th>
+                            <th>Expiry</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var ft in futureTradings)
+                        {
+                            var currentPrice = ft.Contract?.Stock?.Price ?? ft.Price;
+
+                            int unrealizedPL = ft.Contract?.ContractType == "LONG"
+                            ? (currentPrice - ft.Price) * ft.Quantity
+                            : (ft.Price - currentPrice) * ft.Quantity;
+
+                            <tr>
+                                <td style="color: #9aa4ae;">#@ft.ContractId</td>
+
+                                <td>
+                                    @if (ft.Contract?.ContractType == "LONG")
+                                    {
+                                        <span style="background: rgba(40, 167, 69, 0.15); color: #28a745; padding: 4px 10px; border-radius: 8px; font-weight: 600;">
+                                            LONG
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span style="background: rgba(220,53,69,0.12); color: #dc3545; padding: 4px 10px; border-radius: 8px; font-weight: 600;">
+                                            SHORT
+                                        </span>
+                                    }
+                                </td>
+
+                                <td>
+                                    <div class="company-name-cell">
+                                        @(ft.Contract?.Stock?.CompanyName ?? $"Stock #{ft.Contract?.StockId}")
+                                    </div>
+                                </td>
+
+                                <td>@ft.Quantity</td>
+
+                                <td><div class="price-value">@ft.Price.ToString("N0") PKR</div></td>
+
+                                <td><div class="price-value">@currentPrice.ToString("N0") PKR</div></td>
+
+                                <td>
+                                    <span style="color: @(unrealizedPL >= 0 ? "#28a745" : "#dc3545"); font-weight: 700;">
+                                        @(unrealizedPL >= 0 ? "+" : "")@unrealizedPL.ToString("N0") PKR
+                                    </span>
+                                </td>
+
+                                <td>@ft.Contract?.ExpiryDate.ToString("MMM dd, yyyy")</td>
+
+                                <td>
+                                    <button class="view-btn" data-bs-toggle="modal" data-bs-target="#futureModal@ft.FutureTradingId">
+                                        View →
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- FUTURES MODALS -->
+            @foreach (var ft in futureTradings)
+            {
+                var currentPrice = ft.Contract?.Stock?.Price ?? ft.Price;
+                int unrealizedPL = ft.Contract?.ContractType == "LONG"
+                ? (currentPrice - ft.Price) * ft.Quantity
+                : (ft.Price - currentPrice) * ft.Quantity;
+
+                int marginHeld = (int)(ft.Price * ft.Quantity * 0.15);
+                int contractValue = ft.Price * ft.Quantity;
+
+                <div class="modal fade" id="futureModal@ft.FutureTradingId" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" style="color: #1e90ff;">
+                                    Futures Position – @ft.Contract?.Stock?.CompanyName
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+
+                            <div class="modal-body">
+
+                                <div class="detail-card">
+                                    <div class="detail-row">
+                                        <span class="detail-label">Contract ID</span>
+                                        <span class="detail-value">#@ft.ContractId</span>
+                                    </div>
+
+                                    <div class="detail-row">
+                                        <span class="detail-label">Position Type</span>
+                                        <span class="detail-value" style="color:@(ft.Contract?.ContractType == "LONG" ? "#28a745" : "#dc3545")">
+                                            @(ft.Contract?.ContractType == "LONG" ? "LONG" : "SHORT")
+                                        </span>
+                                    </div>
+
+                                    <div class="detail-row">
+                                        <span class="detail-label">Entry Price</span>
+                                        <span class="detail-value">@ft.Price.ToString("N0") PKR</span>
+                                    </div>
+
+                                    <div class="detail-row">
+                                        <span class="detail-label">Current Price</span>
+                                        <span class="detail-value" style="color:@(unrealizedPL >= 0 ? "#28a745" : "#dc3545")">
+                                            @currentPrice.ToString("N0") PKR
+                                        </span>
+                                    </div>
+
+                                    <div class="detail-row">
+                                        <span class="detail-label">Quantity</span>
+                                        <span class="detail-value">@ft.Quantity</span>
+                                    </div>
+
+                                    <div class="detail-row">
+                                        <span class="detail-label">Contract Value</span>
+                                        <span class="detail-value">@contractValue.ToString("N0") PKR</span>
+                                    </div>
+
+                                    <div class="detail-row">
+                                        <span class="detail-label">Margin Held (15%)</span>
+                                        <span class="detail-value">@marginHeld.ToString("N0") PKR</span>
+                                    </div>
+
+                                    <div class="detail-row">
+                                        <span class="detail-label">Unrealized P/L</span>
+                                        <span class="detail-value" style="color:@(unrealizedPL >= 0 ? "#28a745" : "#dc3545"); font-weight:600;">
+                                            @(unrealizedPL >= 0 ? "+" : "")@unrealizedPL.ToString("N0") PKR
+                                        </span>
+                                    </div>
+
+                                    <div class="detail-row">
+                                        <span class="detail-label">Expiry Date</span>
+                                        <span class="detail-value">@ft.Contract?.ExpiryDate.ToString("MMM dd, yyyy")</span>
+                                    </div>
+
+                                    <div class="detail-row">
+                                        <span class="detail-label">Opened On</span>
+                                        <span class="detail-value">@ft.TradeTime.ToString("MMM dd, yyyy hh:mm tt")</span>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+
+                                <!-- Close futures position -->
+                                <button class="view-btn"
+                                        onclick="openCloseFutureModal(
+                                            @ft.FutureTradingId,
+                                            '@ft.Contract.ContractType',
+                                            @ft.Price,
+                                            @currentPrice,
+                                            @ft.Quantity,
+                                            @ft.ContractId
+                                        )">
+                                    Close Position
+                                </button>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Close Futures Confirmation Modal -->
+                <div class="modal fade" id="closeFutureModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+
+                            <div class="modal-header">
+                                <h5 class="modal-title" style="color:#1e90ff;">Close Futures Position</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+
+                            <div class="modal-body">
+
+                                <div class="detail-card">
+                                    <div class="detail-row">
+                                        <span class="detail-label">Contract ID</span>
+                                        <span class="detail-value" id="cf-contractId"></span>
+                                    </div>
+
+                                    <div class="detail-row">
+                                        <span class="detail-label">Type</span>
+                                        <span class="detail-value" id="cf-type"></span>
+                                    </div>
+
+                                    <div class="detail-row">
+                                        <span class="detail-label">Entry Price</span>
+                                        <span class="detail-value" id="cf-entry"></span>
+                                    </div>
+
+                                    <div class="detail-row">
+                                        <span class="detail-label">Current Price</span>
+                                        <span class="detail-value" id="cf-current"></span>
+                                    </div>
+
+                                    <div class="detail-row">
+                                        <span class="detail-label">Quantity</span>
+                                        <span class="detail-value" id="cf-qty"></span>
+                                    </div>
+
+                                    <div class="detail-row">
+                                        <span class="detail-label">Margin Held</span>
+                                        <span class="detail-value" id="cf-margin"></span>
+                                    </div>
+
+                                    <div class="detail-row">
+                                        <span class="detail-label">Projected P/L</span>
+                                        <span class="detail-value" id="cf-pl"></span>
+                                    </div>
+
+                                    <div class="detail-row">
+                                        <span class="detail-label">Return to Wallet</span>
+                                        <span class="detail-value" id="cf-total"></span>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <div class="modal-footer">
+                                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button class="btn btn-danger" id="confirmCloseFutureBtn">Confirm Close</button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+
+            }
+        }
+        else
+        {
+            <div class="empty-state">
+                <div class="mb-3"></div>
+                <h5>No Active Futures</h5>
+                <p>Your futures positions will appear here.</p>
+            </div>
+        }
+    </div>
+
+
+    
+
 </div>
 
 <div class="modal fade" id="addFundsModal" tabindex="-1" aria-labelledby="addFundsModalLabel" aria-hidden="true">
@@ -415,11 +714,80 @@
 
 @section Scripts {
     <script>
-        document.querySelectorAll('.quick-amount').forEach(button => {
+         document.querySelectorAll('.quick-amount').forEach(button => {
             button.addEventListener('click', function () {
                 const amount = this.getAttribute('data-amount');
                 document.getElementById('amount').value = amount;
             });
         });
+        function closeFuturePosition(tradingId) {
+            fetch(`/FutureContracts/Close/${tradingId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();   // No popups at all
+                } else {
+                    console.error(data.message);
+                }
+            })
+            .catch(err => console.error(err));
+        }
+
+                let FUTURE_TO_CLOSE = null;
+
+        function openCloseFutureModal(id, type, entry, current, qty, contractId) {
+
+            FUTURE_TO_CLOSE = id;
+
+            // Calculate margin
+            let margin = Math.floor(entry * qty * 0.15);
+
+            // Calculate projected P/L
+            let pl = type === "LONG"
+                ? (current - entry) * qty
+                : (entry - current) * qty;
+
+            // Total return to user
+            let total = margin + pl;
+
+            // Populate modal fields
+            document.getElementById("cf-contractId").innerText = "#" + contractId;
+            document.getElementById("cf-type").innerText = type;
+            document.getElementById("cf-entry").innerText = entry.toLocaleString() + " PKR";
+            document.getElementById("cf-current").innerText = current.toLocaleString() + " PKR";
+            document.getElementById("cf-qty").innerText = qty;
+            document.getElementById("cf-margin").innerText = margin.toLocaleString() + " PKR";
+
+            const plElement = document.getElementById("cf-pl");
+            plElement.innerText = (pl >= 0 ? "+" : "") + pl.toLocaleString() + " PKR";
+            plElement.style.color = pl >= 0 ? "#28a745" : "#dc3545";
+
+            document.getElementById("cf-total").innerText = total.toLocaleString() + " PKR";
+
+            // Show modal
+            new bootstrap.Modal(document.getElementById('closeFutureModal')).show();
+        }
+
+            document.getElementById("confirmCloseFutureBtn").addEventListener("click", function () {
+
+            fetch(`/FutureContracts/Close/${FUTURE_TO_CLOSE}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload(); // silent update
+                } else {
+                    console.error(data.message);
+                }
+            });
+        });
+
+
+
     </script>
 }

@@ -46,7 +46,7 @@ namespace WebApplication2.Controllers
             }
 
             // Get or create wallet for user
-            var wallet = user.Wallets?.FirstOrDefault();
+            var wallet = await _context.Wallets.FirstOrDefaultAsync(w => w.UserId == userId);
             if (wallet == null)
             {
                 wallet = new Wallet
@@ -63,7 +63,7 @@ namespace WebApplication2.Controllers
             double totalInvestment = 0;
             double currentValue = 0;
             var stockQuantities = new Dictionary<int, int>();
-            var ownedStocksList = new List<Stock>(); // Only stocks with positive quantity
+            var ownedStocksList = new List<Stock>();
 
             // Get all user's stocks
             var allUserStocks = await _context.Stocks
@@ -87,9 +87,9 @@ namespace WebApplication2.Controllers
                 // Only include stocks with positive owned quantity
                 if (ownedQuantity > 0)
                 {
-                    ownedStocksList.Add(stock); // Add to display list
+                    ownedStocksList.Add(stock);
 
-                    // Calculate total investment (purchase price * quantity)
+                    // Calculate investment and current value
                     var buyOrders = await _context.Orders
                         .Where(o => o.UserId == userId && o.StockId == stock.StockId && o.OrderType == "spot_buy")
                         .ToListAsync();
@@ -99,7 +99,6 @@ namespace WebApplication2.Controllers
                         totalInvestment += order.Price * order.Quantity;
                     }
 
-                    // Subtract sell value from investment
                     var sellOrders = await _context.Orders
                         .Where(o => o.UserId == userId && o.StockId == stock.StockId && o.OrderType == "spot_sell")
                         .ToListAsync();
@@ -109,7 +108,6 @@ namespace WebApplication2.Controllers
                         totalInvestment -= order.Price * order.Quantity;
                     }
 
-                    // Calculate current value using current stock price
                     currentValue += stock.Price * ownedQuantity;
                 }
             }
@@ -117,16 +115,49 @@ namespace WebApplication2.Controllers
             // Calculate profit/loss
             double profitLoss = currentValue - totalInvestment;
 
+            // Get user's active future positions
+            var futureTradings = await _context.FutureTradings
+                .Include(ft => ft.Contract)
+                    .ThenInclude(c => c.Stock)
+                .Where(ft => ft.UserId == userId)
+                .ToListAsync();
+
+            // Calculate futures P&L
+            double futuresMarginHeld = 0;
+            double futuresCurrentValue = 0;
+
+            foreach (var ft in futureTradings)
+            {
+                var marginPerContract = (int)(ft.Price * ft.Quantity * 0.15);
+                futuresMarginHeld += marginPerContract;
+
+                var currentStockPrice = ft.Contract?.Stock?.Price ?? ft.Price;
+
+                if (ft.Contract?.ContractType == "LONG")
+                {
+                    futuresCurrentValue += (currentStockPrice - ft.Price) * ft.Quantity;
+                }
+                else // SHORT
+                {
+                    futuresCurrentValue += (ft.Price - currentStockPrice) * ft.Quantity;
+                }
+            }
+
             // Pass calculated values to view
             ViewBag.TotalInvestment = (int)totalInvestment;
             ViewBag.CurrentValue = (int)currentValue;
             ViewBag.ProfitLoss = (int)profitLoss;
-            ViewBag.UserStocks = ownedStocksList; // Only stocks with positive quantity
-            ViewBag.StockQuantities = stockQuantities; // For modal details
+            ViewBag.UserStocks = ownedStocksList;
+            ViewBag.StockQuantities = stockQuantities;
 
-            // Pass the wallet to the view
+            // Futures data
+            ViewBag.FutureTradings = futureTradings;
+            ViewBag.FuturesMarginHeld = (int)futuresMarginHeld;
+            ViewBag.FuturesUnrealizedPL = (int)futuresCurrentValue;
+
             return View(wallet);
         }
+
 
 
 
@@ -175,7 +206,7 @@ namespace WebApplication2.Controllers
 
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = $"Successfully added ${amount:N0} to your wallet!";
+            TempData["Success"] = $"Successfully added {amount:N0} PKR to your wallet!";
             return RedirectToAction("Index");
         }
     }
