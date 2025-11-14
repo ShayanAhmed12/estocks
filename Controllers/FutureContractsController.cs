@@ -79,7 +79,7 @@ namespace WebApplication2.Controllers
                     return Json(new { success = false, message = "Wallet not found" });
                 }
 
-                // Calculate margin requirement (typically 10-20% of total value)
+                // Calculate margin requirement 
                 int contractValue = request.Quantity * request.ContractPrice;
                 int marginRequired = (int)(contractValue * 0.15); // 15% margin
 
@@ -89,7 +89,7 @@ namespace WebApplication2.Controllers
                     return Json(new
                     {
                         success = false,
-                        message = $"Insufficient balance. Margin required: ${marginRequired}, Available: ${wallet.Balance}"
+                        message = $"Insufficient balance. Margin required: {marginRequired} PKR, Available: {wallet.Balance} PKR"
                     });
                 }
 

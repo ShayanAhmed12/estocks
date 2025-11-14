@@ -347,7 +347,7 @@
                     {
                         <div class="wallet-info">
                             <div class="text-muted mb-1">Wallet Balance</div>
-                            <div class="wallet-balance">$@userWallet.Balance.ToString("N0")</div>
+                            <div class="wallet-balance">@userWallet.Balance.ToString("N0") PKR</div>
                         </div>
                     }
 
@@ -383,7 +383,7 @@
                                 </div>
                                 <div class="d-flex justify-content-between">
                                     <span class="text-muted">Total Cost:</span>
-                                    <span class="text-light fw-bold" id="totalBuyCost">$0.00</span>
+                                    <span class="text-light fw-bold" id="totalBuyCost">0 PKR</span>
                                 </div>
                             </div>
 
@@ -417,7 +417,7 @@
                                 </div>
                                 <div class="d-flex justify-content-between">
                                     <span class="text-muted">Total Revenue:</span>
-                                    <span class="text-light fw-bold" id="totalSellRevenue">$0.00</span>
+                                    <span class="text-light fw-bold" id="totalSellRevenue">0 PKR</span>
                                 </div>
                             </div>
 
@@ -452,8 +452,8 @@
                             <div class="form-group">
                                 <label class="form-label">Contract Type</label>
                                 <select name="contractType" class="form-control" required>
-                                    <option value="CALL">Call (Buy)</option>
-                                    <option value="PUT">Put (Sell)</option>
+                                    <option value="LONG">Long (Buy)</option>
+                                    <option value="SHORT">Short (Sell)</option>
                                 </select>
                             </div>
 
@@ -462,9 +462,13 @@
                                     <span class="text-muted">Contract Price:</span>
                                     <span class="text-light">@Model.Currency @Model.CurrentPrice.ToString("N2")</span>
                                 </div>
-                                <div class="d-flex justify-content-between">
+                                <div class="d-flex justify-content-between mb-2">
                                     <span class="text-muted">Total Cost:</span>
-                                    <span class="text-light fw-bold" id="totalFutureCost">$0.00</span>
+                                    <span class="text-light fw-bold" id="totalFutureCost">0 PKR</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">Margin Cost:</span>
+                                    <span class="text-light fw-bold" id="totalMarginCost">0 PKR</span>
                                 </div>
                             </div>
 
@@ -506,21 +510,23 @@
         function calculateBuyCost() {
             const quantity = document.getElementById('buyQuantity').value || 0;
             const total = quantity * currentPrice;
-            document.getElementById('totalBuyCost').textContent = '$' + total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('totalBuyCost').textContent = total.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 1}) + ' PKR';
         }
 
         // Calculate sell revenue
         function calculateSellRevenue() {
             const quantity = document.getElementById('sellQuantity').value || 0;
             const total = quantity * currentPrice;
-            document.getElementById('totalSellRevenue').textContent = '$' + total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('totalSellRevenue').textContent = total.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 1}) + ' PKR';
         }
 
         // Calculate future cost
         function calculateFutureCost() {
             const quantity = document.getElementById('futureQuantity').value || 0;
             const total = quantity * currentPrice;
-            document.getElementById('totalFutureCost').textContent = '$' + total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            const margin = total * 0.15;
+            document.getElementById('totalFutureCost').textContent = total.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 1}) + ' PKR';
+             document.getElementById('totalMarginCost').textContent = margin.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 1}) + ' PKR';
         }
 
         // Chart data
