@@ -57,7 +57,7 @@ namespace WebApplication2.Controllers
             return await CreateContract(request, "SHORT");
         }
 
-        // Private method to handle both LONG and SHORT
+        // Private method to handle both LONG and SHORT (FIXED - Same as spot logic)
         private async Task<IActionResult> CreateContract(CreateContractRequest request, string positionType)
         {
             try
@@ -79,28 +79,38 @@ namespace WebApplication2.Controllers
                     return Json(new { success = false, message = "Wallet not found" });
                 }
 
-                // Calculate margin requirement 
-                int contractValue = request.Quantity * request.ContractPrice;
-                int marginRequired = (int)(contractValue * 0.15); // 15% margin
+                // Calculate total cost (same as spot - no margin)
+                int totalCost = request.Quantity * request.ContractPrice;
 
                 // Check if user has enough balance
-                if (wallet.Balance < marginRequired)
+                if (wallet.Balance < totalCost)
                 {
                     return Json(new
                     {
                         success = false,
-                        message = $"Insufficient balance. Margin required: {marginRequired} PKR, Available: {wallet.Balance} PKR"
+                        message = $"Insufficient balance. Required: {totalCost} PKR, Available: {wallet.Balance} PKR"
                     });
                 }
 
-                // Deduct margin from wallet
-                wallet.Balance -= marginRequired;
+                // Deduct full amount from wallet (same as spot)
+                wallet.Balance -= totalCost;
                 wallet.LastUpdated = DateTime.Now;
+
+                // Get or create stock record
+                var stock = await _context.Stocks.FindAsync(request.StockId);
+                if (stock == null)
+                {
+                    return Json(new { success = false, message = "Stock not found" });
+                }
+
+                // Update stock price
+                stock.Price = request.ContractPrice;
 
                 // Create or get the future contract
                 var contract = await _context.FutureContracts
                     .FirstOrDefaultAsync(fc => fc.StockId == request.StockId &&
-                                              fc.ExpiryDate == request.ExpiryDate);
+                                              fc.ExpiryDate == request.ExpiryDate &&
+                                              fc.ContractType == positionType);
 
                 if (contract == null)
                 {
@@ -109,46 +119,51 @@ namespace WebApplication2.Controllers
                         StockId = request.StockId,
                         ExpiryDate = request.ExpiryDate,
                         ContractPrice = request.ContractPrice,
-                        ContractType = positionType // LONG or SHORT
+                        ContractType = positionType
                     };
                     _context.FutureContracts.Add(contract);
                     await _context.SaveChangesAsync(); // Save to get ContractId
                 }
 
-                // Create FutureTrading entry (user's position)
+                // Create FutureTrading entry
                 var futureTrading = new FutureTrading
                 {
                     UserId = userId,
                     ContractId = contract.ContractId,
                     Quantity = request.Quantity,
-                    Price = request.ContractPrice, // Entry price
+                    Price = request.ContractPrice,
                     TradeTime = DateTime.Now
                 };
                 _context.FutureTradings.Add(futureTrading);
 
-                // Create Order entry
+                // Create Order - EXACTLY like spot
                 string orderType = positionType == "LONG" ? "future_long" : "future_short";
                 var order = new Order
                 {
                     UserId = userId,
                     StockId = request.StockId,
+                    OrderType = orderType,
                     Quantity = request.Quantity,
                     Price = request.ContractPrice,
-                    OrderType = orderType,
-                    OrderStatus = true // Open position
+                    OrderStatus = true
                 };
                 _context.Orders.Add(order);
 
-                // Create Transaction entry
+                // Create Transaction - EXACTLY like spot
                 string transactionType = positionType == "LONG" ? "BUY_FUTURE_LONG" : "SELL_FUTURE_SHORT";
                 var transaction = new Transaction
                 {
+                    WalletId = wallet.WalletId,
                     UserId = userId,
                     StockId = request.StockId,
                     Quantity = request.Quantity,
                     TransactionType = transactionType
                 };
                 _context.Transactions.Add(transaction);
+
+                // Debug: Check what's being added
+                Console.WriteLine($"Adding Order: UserId={userId}, StockId={request.StockId}, Type={orderType}");
+                Console.WriteLine($"Adding Transaction: WalletId={wallet.WalletId}, UserId={userId}, StockId={request.StockId}, Type={transactionType}");
 
                 // Save all changes
                 await _context.SaveChangesAsync();
@@ -159,14 +174,15 @@ namespace WebApplication2.Controllers
                     message = $"{positionType} position created successfully",
                     contractId = contract.ContractId,
                     positionType = positionType,
-                    marginDeducted = marginRequired,
-                    contractValue = contractValue,
+                    amountDeducted = totalCost,
                     expiryDate = contract.ExpiryDate.ToString("MMM dd, yyyy"),
                     remainingBalance = wallet.Balance
                 });
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Error in CreateContract: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 return Json(new { success = false, message = $"Error: {ex.Message}" });
             }
         }
@@ -202,85 +218,91 @@ namespace WebApplication2.Controllers
             }
         }
 
-        // Private method to close a position
+        // Private method to close a position (FIXED - Same as spot logic)
         private async Task<IActionResult> ClosePosition(FutureTrading futureTrading, int userId)
         {
-            // Get user's wallet
-            var wallet = await _context.Wallets.FirstOrDefaultAsync(w => w.UserId == userId);
-            if (wallet == null)
+            try
             {
-                return Json(new { success = false, message = "Wallet not found" });
+                // Get user's wallet
+                var wallet = await _context.Wallets.FirstOrDefaultAsync(w => w.UserId == userId);
+                if (wallet == null)
+                {
+                    return Json(new { success = false, message = "Wallet not found" });
+                }
+
+                // Get current stock price
+                var stock = await _context.Stocks.FindAsync(futureTrading.Contract.StockId);
+                int currentPrice = stock?.Price ?? futureTrading.Price;
+
+                // Calculate profit/loss
+                int profitLoss;
+                if (futureTrading.Contract.ContractType == "LONG")
+                {
+                    profitLoss = (currentPrice - futureTrading.Price) * futureTrading.Quantity;
+                }
+                else // SHORT
+                {
+                    profitLoss = (futureTrading.Price - currentPrice) * futureTrading.Quantity;
+                }
+
+                // Calculate original investment
+                int originalInvestment = futureTrading.Price * futureTrading.Quantity;
+
+                // Return original investment + profit/loss to wallet
+                int totalReturn = originalInvestment + profitLoss;
+                wallet.Balance += totalReturn;
+                wallet.LastUpdated = DateTime.Now;
+
+                // Close the related order
+                var order = await _context.Orders
+                    .FirstOrDefaultAsync(o => o.UserId == userId &&
+                                            o.StockId == futureTrading.Contract.StockId &&
+                                            (o.OrderType == "future_long" || o.OrderType == "future_short") &&
+                                            o.OrderStatus == true);
+
+                if (order != null)
+                {
+                    order.OrderStatus = false;
+                }
+
+                // Create closing transaction - EXACTLY like spot
+                string transactionType = futureTrading.Contract.ContractType == "LONG"
+                    ? "CLOSE_FUTURE_LONG"
+                    : "CLOSE_FUTURE_SHORT";
+
+                var closeTransaction = new Transaction
+                {
+                    WalletId = wallet.WalletId,
+                    UserId = userId,
+                    StockId = futureTrading.Contract.StockId,
+                    Quantity = futureTrading.Quantity,
+                    TransactionType = transactionType
+                };
+                _context.Transactions.Add(closeTransaction);
+
+                // Remove future trading record
+                _context.FutureTradings.Remove(futureTrading);
+
+                await _context.SaveChangesAsync();
+
+                return Json(new
+                {
+                    success = true,
+                    message = $"{futureTrading.Contract.ContractType} position closed successfully",
+                    positionType = futureTrading.Contract.ContractType,
+                    entryPrice = futureTrading.Price,
+                    exitPrice = currentPrice,
+                    profitLoss = profitLoss,
+                    profitLossPercent = originalInvestment > 0 ? ((double)profitLoss / originalInvestment * 100).ToString("F2") : "0",
+                    totalReturn = totalReturn,
+                    newBalance = wallet.Balance
+                });
             }
-
-            // Get current stock price
-            var stock = await _context.Stocks.FindAsync(futureTrading.Contract.StockId);
-            int currentPrice = stock?.Price ?? futureTrading.Price;
-
-            // Calculate profit/loss based on position type
-            int profitLoss;
-            if (futureTrading.Contract.ContractType == "LONG")
+            catch (Exception ex)
             {
-                // LONG: profit when price goes up
-                profitLoss = (currentPrice - futureTrading.Price) * futureTrading.Quantity;
+                Console.WriteLine($"Error in ClosePosition: {ex.Message}");
+                return Json(new { success = false, message = $"Error: {ex.Message}" });
             }
-            else // SHORT
-            {
-                // SHORT: profit when price goes down
-                profitLoss = (futureTrading.Price - currentPrice) * futureTrading.Quantity;
-            }
-
-            // Calculate margin that was held
-            int marginHeld = (int)(futureTrading.Price * futureTrading.Quantity * 0.15);
-
-            // Return margin + profit/loss to wallet
-            int totalReturn = marginHeld + profitLoss;
-            wallet.Balance += totalReturn;
-            wallet.LastUpdated = DateTime.Now;
-
-            // Close the related order
-            var order = await _context.Orders
-                .FirstOrDefaultAsync(o => o.UserId == userId &&
-                                        o.StockId == futureTrading.Contract.StockId &&
-                                        (o.OrderType == "future_long" || o.OrderType == "future_short") &&
-                                        o.OrderStatus == true);
-
-            if (order != null)
-            {
-                order.OrderStatus = false;
-            }
-
-            // Create closing transaction
-            string transactionType = futureTrading.Contract.ContractType == "LONG"
-                ? "CLOSE_FUTURE_LONG"
-                : "CLOSE_FUTURE_SHORT";
-
-            var closeTransaction = new Transaction
-            {
-                UserId = userId,
-                StockId = futureTrading.Contract.StockId,
-                Quantity = futureTrading.Quantity,
-                TransactionType = transactionType
-            };
-            _context.Transactions.Add(closeTransaction);
-
-            // Remove future trading record
-            _context.FutureTradings.Remove(futureTrading);
-
-            await _context.SaveChangesAsync();
-
-            return Json(new
-            {
-                success = true,
-                message = $"{futureTrading.Contract.ContractType} position closed successfully",
-                positionType = futureTrading.Contract.ContractType,
-                entryPrice = futureTrading.Price,
-                exitPrice = currentPrice,
-                profitLoss = profitLoss,
-                profitLossPercent = ((double)profitLoss / marginHeld * 100).ToString("F2"),
-                marginReturned = marginHeld,
-                totalReturn = totalReturn,
-                newBalance = wallet.Balance
-            });
         }
 
         // Background job to auto-close expired contracts

@@ -373,6 +373,7 @@ namespace WebApplication2.Controllers
         // POST: /Stocks/BuyFuture
         [HttpPost]
         [ValidateAntiForgeryToken]
+        // Replace the BuyFuture method in StocksController.cs (around line 375)
         public async Task<IActionResult> BuyFuture(string symbol, int quantity, DateTime expiryDate, string contractType)
         {
             if (!User.Identity.IsAuthenticated)
@@ -397,7 +398,7 @@ namespace WebApplication2.Controllers
             var wallet = await _context.Wallets.FirstOrDefaultAsync(w => w.UserId == userId);
             if (wallet == null || wallet.Balance < totalCost)
             {
-                TempData["Error"] = $"Insufficient balance for future contract.";
+                TempData["Error"] = $"Insufficient balance. Required: {totalCost} PKR, Available: {wallet?.Balance ?? 0} PKR";
                 return RedirectToAction("Details", new { symbol });
             }
 
@@ -421,33 +422,69 @@ namespace WebApplication2.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            // Create future contract
-            var futureContract = new FutureContract
+            try
             {
-                StockId = stock.StockId,
-                ExpiryDate = expiryDate,
-                ContractPrice = contractPrice,
-                ContractType = contractType
-            };
-            _context.FutureContracts.Add(futureContract);
-            await _context.SaveChangesAsync();
+                // Create future contract
+                var futureContract = new FutureContract
+                {
+                    StockId = stock.StockId,
+                    ExpiryDate = expiryDate,
+                    ContractPrice = contractPrice,
+                    ContractType = contractType
+                };
+                _context.FutureContracts.Add(futureContract);
+                await _context.SaveChangesAsync();
 
-            // Create future trading record
-            var futureTrade = new FutureTrading
+                // Create future trading record
+                var futureTrade = new FutureTrading
+                {
+                    ContractId = futureContract.ContractId,
+                    UserId = userId,
+                    Quantity = quantity,
+                    Price = contractPrice,
+                    TradeTime = DateTime.Now
+                };
+                _context.FutureTradings.Add(futureTrade);
+
+                // Create Order - THIS WAS MISSING!
+                string orderType = contractType == "LONG" ? "future_long" : "future_short";
+                var order = new Order
+                {
+                    UserId = userId,
+                    StockId = stock.StockId,
+                    OrderType = orderType,
+                    Quantity = quantity,
+                    Price = contractPrice,
+                    OrderStatus = true
+                };
+                _context.Orders.Add(order);
+
+                // Create Transaction - THIS WAS MISSING!
+                string transactionType = contractType == "LONG" ? "BUY_FUTURE_LONG" : "SELL_FUTURE_SHORT";
+                var transaction = new Transaction
+                {
+                    WalletId = wallet.WalletId,  // ← THIS WAS MISSING!
+                    UserId = userId,
+                    StockId = stock.StockId,
+                    Quantity = quantity,
+                    TransactionType = transactionType
+                };
+                _context.Transactions.Add(transaction);
+
+                await _context.SaveChangesAsync();
+
+                TempData["Success"] = $"Future contract created for {quantity} shares of {quote.CompanyName}";
+            }
+            catch (Exception ex)
             {
-                ContractId = futureContract.ContractId,
-                UserId = userId,
-                Quantity = quantity,
-                Price = contractPrice,
-                TradeTime = DateTime.Now
-            };
-            _context.FutureTradings.Add(futureTrade);
+                TempData["Error"] = "Failed to create contract: " + ex.Message;
+                Console.WriteLine(ex);
+            }
 
-            await _context.SaveChangesAsync();
-
-            TempData["Success"] = $"Future contract created for {quantity} shares of {quote.CompanyName}";
             return RedirectToAction("Details", new { symbol });
         }
+
+
     }
 }
 
