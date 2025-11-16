@@ -373,7 +373,6 @@ namespace WebApplication2.Controllers
         // POST: /Stocks/BuyFuture
         [HttpPost]
         [ValidateAntiForgeryToken]
-        // Replace the BuyFuture method in StocksController.cs (around line 375)
         public async Task<IActionResult> BuyFuture(string symbol, int quantity, DateTime expiryDate, string contractType)
         {
             if (!User.Identity.IsAuthenticated)
@@ -392,18 +391,21 @@ namespace WebApplication2.Controllers
             }
 
             int contractPrice = (int)quote.CurrentPrice;
-            int totalCost = contractPrice * quantity;
+            int notional = contractPrice * quantity;
+
+            // Calculate margin (15%)
+            int margin = (int)Math.Ceiling(notional * 0.15);
 
             // Get user's wallet
             var wallet = await _context.Wallets.FirstOrDefaultAsync(w => w.UserId == userId);
-            if (wallet == null || wallet.Balance < totalCost)
+            if (wallet == null || wallet.Balance < margin)
             {
-                TempData["Error"] = $"Insufficient balance. Required: {totalCost} PKR, Available: {wallet?.Balance ?? 0} PKR";
+                TempData["Error"] = $"Insufficient balance. Required margin: {margin} PKR, Available: {wallet?.Balance ?? 0} PKR";
                 return RedirectToAction("Details", new { symbol });
             }
 
-            // Deduct from wallet
-            wallet.Balance -= totalCost;
+            // Deduct ONLY margin
+            wallet.Balance -= margin;
             wallet.LastUpdated = DateTime.Now;
 
             // Get or create stock
@@ -446,7 +448,7 @@ namespace WebApplication2.Controllers
                 };
                 _context.FutureTradings.Add(futureTrade);
 
-                // Create Order - THIS WAS MISSING!
+                // Create Order
                 string orderType = contractType == "LONG" ? "future_long" : "future_short";
                 var order = new Order
                 {
@@ -459,21 +461,20 @@ namespace WebApplication2.Controllers
                 };
                 _context.Orders.Add(order);
 
-                // Create Transaction - THIS WAS MISSING!
-                string transactionType = contractType == "LONG" ? "BUY_FUTURE_LONG" : "SELL_FUTURE_SHORT";
+                // Create Transaction for margin
                 var transaction = new Transaction
                 {
-                    WalletId = wallet.WalletId,  // ← THIS WAS MISSING!
+                    WalletId = wallet.WalletId,
                     UserId = userId,
                     StockId = stock.StockId,
                     Quantity = quantity,
-                    TransactionType = transactionType
+                    TransactionType = "MARGIN_RESERVE"
                 };
                 _context.Transactions.Add(transaction);
 
                 await _context.SaveChangesAsync();
 
-                TempData["Success"] = $"Future contract created for {quantity} shares of {quote.CompanyName}";
+                TempData["Success"] = $"Future position opened using {margin} PKR margin.";
             }
             catch (Exception ex)
             {
@@ -483,6 +484,7 @@ namespace WebApplication2.Controllers
 
             return RedirectToAction("Details", new { symbol });
         }
+
 
 
     }

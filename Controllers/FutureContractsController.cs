@@ -79,21 +79,23 @@ namespace WebApplication2.Controllers
                     return Json(new { success = false, message = "Wallet not found" });
                 }
 
-                // Calculate total cost (same as spot - no margin)
+                // Calculate total cost and margin
                 int totalCost = request.Quantity * request.ContractPrice;
+                int notional = request.Quantity * request.ContractPrice;
+                int margin = (int)Math.Ceiling(notional * 0.15);
 
-                // Check if user has enough balance
-                if (wallet.Balance < totalCost)
+                // Check margin availability
+                if (wallet.Balance < margin)
                 {
                     return Json(new
                     {
                         success = false,
-                        message = $"Insufficient balance. Required: {totalCost} PKR, Available: {wallet.Balance} PKR"
+                        message = $"Insufficient balance. Required margin: {margin} PKR"
                     });
                 }
 
-                // Deduct full amount from wallet (same as spot)
-                wallet.Balance -= totalCost;
+                // Deduct ONLY margin (not full cost)
+                wallet.Balance -= margin;
                 wallet.LastUpdated = DateTime.Now;
 
                 // Get or create stock record
@@ -218,7 +220,7 @@ namespace WebApplication2.Controllers
             }
         }
 
-        // Private method to close a position (FIXED - Same as spot logic)
+        // Private method to close a position 
         private async Task<IActionResult> ClosePosition(FutureTrading futureTrading, int userId)
         {
             try
@@ -245,13 +247,15 @@ namespace WebApplication2.Controllers
                     profitLoss = (futureTrading.Price - currentPrice) * futureTrading.Quantity;
                 }
 
-                // Calculate original investment
-                int originalInvestment = futureTrading.Price * futureTrading.Quantity;
+                // recompute notional & margin
+                int notional = futureTrading.Price * futureTrading.Quantity;
+                int margin = (int)Math.Ceiling(notional * 0.15);
+                int settlementAmount = margin + profitLoss;
 
-                // Return original investment + profit/loss to wallet
-                int totalReturn = originalInvestment + profitLoss;
-                wallet.Balance += totalReturn;
+                // return margin + profit/loss
+                wallet.Balance += settlementAmount;
                 wallet.LastUpdated = DateTime.Now;
+
 
                 // Close the related order
                 var order = await _context.Orders
@@ -292,9 +296,10 @@ namespace WebApplication2.Controllers
                     positionType = futureTrading.Contract.ContractType,
                     entryPrice = futureTrading.Price,
                     exitPrice = currentPrice,
+                    margin = margin,
                     profitLoss = profitLoss,
-                    profitLossPercent = originalInvestment > 0 ? ((double)profitLoss / originalInvestment * 100).ToString("F2") : "0",
-                    totalReturn = totalReturn,
+                    profitLossPercent = notional > 0 ? ((double)profitLoss / notional * 100).ToString("F2") : "0",
+                    settlementAmount = settlementAmount,
                     newBalance = wallet.Balance
                 });
             }
