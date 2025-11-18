@@ -16,7 +16,9 @@ namespace WebApplication2.Models
 
         [Required]
         public string BankName { get; set; } = string.Empty;
-        public int AccountNumber { get; set; }
+        [Required]
+        public string AccountNumber { get; set; } = string.Empty;
+
         public string AccountTitle { get; set; } = string.Empty;
         public string AccountType { get; set; } = string.Empty;
         public User? User { get; set; }

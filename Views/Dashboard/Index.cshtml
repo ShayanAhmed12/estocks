@@ -1,0 +1,357 @@
+﻿@model WebApplication2.Models.User
+
+@{
+    ViewData["Title"] = "Account Dashboard";
+    var user = Model;
+    var walletBalance = (ViewBag.WalletBalance ?? 0);
+    var ordersCount = (int)(ViewBag.OrdersCount ?? 0);
+    var fundsCount = (int)(ViewBag.FundInvestmentsCount ?? 0);
+    var dividendsCount = (int)(ViewBag.DividendsCount ?? 0);
+}
+
+<style>
+    /* Re-using the project's dark theme style conventions */
+    .dashboard-wrap {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 220px 1fr;
+        gap: 1.25rem;
+        align-items: start;
+    }
+
+    /* Left vertical nav (thin column) */
+    .dash-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        position: sticky;
+        top: 90px;
+        align-self: start;
+    }
+
+        .dash-nav .nav-box {
+            background: linear-gradient(145deg, #0a1a2f, #071226);
+            border-radius: 12px;
+            padding: 1rem;
+            border: 1px solid #122b4a;
+            text-align: center;
+            font-weight: 700;
+            color: #9aa4ae;
+            cursor: pointer;
+            transition: all 0.18s ease;
+        }
+
+            .dash-nav .nav-box:hover {
+                transform: translateY(-3px);
+                color: #e9eef2;
+                box-shadow: 0 8px 25px rgba(30,144,255,0.06);
+            }
+
+            .dash-nav .nav-box.active {
+                color: #1e90ff;
+                background: linear-gradient(135deg, rgba(30,144,255,0.06), rgba(30,144,255,0.02));
+                border: 1px solid #1e90ff;
+                box-shadow: 0 10px 30px rgba(30,144,255,0.06);
+            }
+
+    /* Main card */
+    .dash-card {
+        background: linear-gradient(145deg, #0a1a2f, #050505);
+        border-radius: 16px;
+        padding: 1.5rem;
+        border: 1px solid #1c2a3d;
+        box-shadow: 0 8px 25px rgba(30,144,255,0.06);
+    }
+
+    .dash-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .dash-title {
+        color: #1e90ff;
+        font-weight: 700;
+        font-size: 1.5rem;
+    }
+
+    .user-info {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .info-box {
+        background: linear-gradient(145deg,#071226,#050b14);
+        border-radius: 12px;
+        padding: 1rem;
+        border: 1px solid #122b4a;
+    }
+
+    .info-label {
+        color: #9aa4ae;
+        font-size: 0.85rem;
+    }
+
+    .info-value {
+        color: #e9eef2;
+        font-weight: 700;
+        font-size: 1.05rem;
+    }
+
+    .actions-row {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .form-section {
+        background: linear-gradient(145deg,#071226,#050b14);
+        border-radius: 12px;
+        padding: 1rem;
+        border: 1px solid #122b4a;
+    }
+
+        .form-section .form-label {
+            color: #9aa4ae;
+            font-weight: 600;
+        }
+
+    .form-control.custom {
+        background: #071226;
+        border: 1px solid #122b4a;
+        color: #e9eef2;
+        border-radius: 8px;
+        padding: 0.6rem 0.8rem;
+        width: 100%;
+    }
+
+    .btn-primary-accent {
+        background: linear-gradient(135deg,#1e90ff,#0073e6);
+        color: white;
+        border: none;
+        padding: 0.6rem 1rem;
+        border-radius: 8px;
+        font-weight: 700;
+    }
+
+    .btn-danger-accent {
+        background: linear-gradient(135deg,#dc3545,#b21f2d);
+        color: white;
+        border: none;
+        padding: 0.6rem 1rem;
+        border-radius: 8px;
+        font-weight: 700;
+    }
+
+    .muted {
+        color: #9aa4ae;
+    }
+
+    .danger-note {
+        color: #f8d7da;
+        background: rgba(220,53,69,0.06);
+        border: 1px solid rgba(220,53,69,0.12);
+        padding: 0.7rem;
+        border-radius: 8px;
+    }
+
+
+    .dash-nav {
+        display: flex;
+        flex-direction: row;
+        overflow-x: auto;
+        gap: .5rem;
+        position: relative;
+        top: 0;
+    }
+
+    .user-info {
+        grid-template-columns: 1fr;
+    }
+
+    
+    @@media (max-width: 900px) {
+        .dash-nav {
+            flex-direction: column !important;
+            overflow-x: visible !important;
+        }
+    }
+
+</style>
+
+<div class="dashboard-wrap">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="dashboard-grid">
+        <!-- left nav column -->
+        <div class="dash-nav" aria-hidden="false" style="flex-direction: column; padding-top:2rem;">
+            <div class="nav-box active" title="Account">
+                Account
+            </div>
+
+            <a href="@Url.Action("Billing", "Dashboard")" class="text-decoration-none">
+                <div class="nav-box" title="Billing">
+                    Billing
+                </div>
+            </a>
+        </div>
+
+
+        <!-- right main column -->
+        <div>
+            <div class="dash-card">
+                <div class="dash-header">
+                    <div>
+                        <div class="dash-title">Account</div>
+                        <div class="muted">Manage your account details, password, and email</div>
+                    </div>
+                    <div class="text-end">
+                        <div class="muted">Wallet</div>
+                        <div class="info-value">$@walletBalance.ToString("N0")</div>
+                    </div>
+                </div>
+
+                <div class="user-info">
+                    <div class="info-box">
+                        <div class="info-label">Full name</div>
+                        <div class="info-value">@user.Name</div>
+                        <div class="muted mt-1">User ID: #@user.UserId</div>
+                    </div>
+
+                    <div class="info-box">
+                        <div class="info-label">Email</div>
+                        <div class="info-value">@user.Email</div>
+                        <div class="muted mt-1">Phone: @user.PhoneNum</div>
+                        <div class="muted mt-1">Account active: @(user.ActiveUser ? "Yes" : "No")</div>
+                    </div>
+                </div>
+
+                <div class="actions-row">
+                    <!-- Change Password -->
+                    <div class="form-section">
+                        <h5 style="color:#1e90ff">Change Password</h5>
+                        <p class="muted">Provide current password and a new password. New password must be confirmed.</p>
+
+                        <form asp-action="ChangePassword" method="post">
+                            @Html.AntiForgeryToken()
+                            <div class="mb-2">
+                                <label class="form-label">Current password</label>
+                                <input type="password" name="currentPassword" class="form-control custom" required />
+                            </div>
+
+                            <div class="mb-2">
+                                <label class="form-label">New password</label>
+                                <input type="password" name="newPassword" id="newPassword" class="form-control custom" required />
+                            </div>
+
+                            <div class="mb-2">
+                                <label class="form-label">Confirm new password</label>
+                                <input type="password" name="confirmPassword" id="confirmPassword" class="form-control custom" required />
+                            </div>
+
+                            <div class="d-flex justify-content-end">
+                                <button type="submit" class="btn btn-primary-accent">Change password</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Change Email -->
+                    <div class="form-section">
+                        <h5 style="color:#1e90ff">Change Email</h5>
+                        <p class="muted">Enter a new email address. You will need to confirm using your current password.</p>
+
+                        <form asp-action="ChangeEmail" method="post">
+                            @Html.AntiForgeryToken()
+                            <div class="mb-2">
+                                <label class="form-label">New email</label>
+                                <input type="email" name="newEmail" class="form-control custom" required />
+                            </div>
+
+                            <div class="mb-2">
+                                <label class="form-label">Confirm with password</label>
+                                <input type="password" name="confirmPassword" class="form-control custom" required />
+                            </div>
+
+                            <div class="d-flex justify-content-end">
+                                <button type="submit" class="btn btn-primary-accent">Change email</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Deactivate Account -->
+                    <div class="form-section">
+                        <h5 style="color:#dc3545">Deactivate Account</h5>
+                        <p class="muted">This will deactivate your account immediately and log you out. This action is reversible only by an admin.</p>
+
+                        <div class="danger-note mb-3">
+                            <strong>Warning:</strong> Deactivating will disable your account. All your active sessions will be terminated.
+                        </div>
+
+                        <form asp-action="Deactivate" method="post" onsubmit="return confirmDeactivate();">
+                            @Html.AntiForgeryToken()
+                            <div class="mb-2">
+                                <label class="form-label">Confirm with password</label>
+                                <input type="password" name="confirmPassword" class="form-control custom" required />
+                            </div>
+
+                            <div class="d-flex justify-content-end">
+                                <button type="submit" class="btn btn-danger-accent">Deactivate account</button>
+                            </div>
+                        </form>
+                    </div>
+                </div> <!-- actions row -->
+            </div> <!-- dash card -->
+        </div>
+    </div> <!-- grid -->
+</div>
+
+@section Scripts {
+    <script>
+        // client-side password match check (friendly)
+        (function () {
+            const newPw = document.getElementById('newPassword');
+            const confirmPw = document.getElementById('confirmPassword');
+
+            if (!newPw || !confirmPw) return;
+
+            function checkMatch() {
+                if (!newPw.value && !confirmPw.value) return;
+                if (newPw.value !== confirmPw.value) {
+                    confirmPw.setCustomValidity('Passwords do not match');
+                } else {
+                    confirmPw.setCustomValidity('');
+                }
+            }
+
+            newPw.addEventListener('input', checkMatch);
+            confirmPw.addEventListener('input', checkMatch);
+        })();
+
+        function confirmDeactivate() {
+            return confirm('Are you sure you want to deactivate your account? This will log you out immediately.');
+        }
+    </script>
+}

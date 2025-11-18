@@ -49,11 +49,10 @@ namespace WebApplication2.Controllers
             return View("Register");
         }
 
-        // POST: /Users/Create
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Name,Email,Password,Cnic,PhoneNum,ActiveUser")] User user, string? returnUrl = null)
+        public async Task<IActionResult> Create([Bind("Name,Email,Password,Cnic,PhoneNum")] User user, string? returnUrl = null)
         {
             if (!ModelState.IsValid)
             {
@@ -67,16 +66,19 @@ namespace WebApplication2.Controllers
                 return View("Register", user);
             }
 
+            // force ActiveUser = true
+            user.ActiveUser = true;
+
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            // sign in the new user
+            // sign in the new user (unchanged)
             var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-                new Claim(ClaimTypes.Name, user.Name ?? string.Empty),
-                new Claim(ClaimTypes.Email, user.Email ?? string.Empty)
-            };
+    {
+        new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+        new Claim(ClaimTypes.Name, user.Name ?? string.Empty),
+        new Claim(ClaimTypes.Email, user.Email ?? string.Empty)
+    };
 
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             var authProperties = new AuthenticationProperties
@@ -93,6 +95,7 @@ namespace WebApplication2.Controllers
 
             return RedirectToAction("Index", "Home");
         }
+
 
         // GET: /Users/Edit/5
         public async Task<IActionResult> Edit(int? id)
@@ -166,7 +169,6 @@ namespace WebApplication2.Controllers
             return View();
         }
 
-        // POST: /Users/Login
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
@@ -177,12 +179,22 @@ namespace WebApplication2.Controllers
                 return View(request);
             }
 
+
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email && u.Password == request.Password);
             if (user == null)
             {
                 ModelState.AddModelError(string.Empty, "Invalid email or password.");
                 return View(request);
             }
+
+
+            // Check if account is active
+            if (!user.ActiveUser)
+            {
+                TempData["AccountDeactivated"] = "true";
+                return RedirectToAction("Login"); // redirect to login page
+            }
+
 
             var claims = new List<Claim>
             {
@@ -206,6 +218,7 @@ namespace WebApplication2.Controllers
 
             return RedirectToAction("Index", "Home");
         }
+
 
         // POST: /Users/Logout
         [HttpPost]

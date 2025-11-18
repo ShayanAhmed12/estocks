@@ -69,12 +69,12 @@
     <div id="sidebar-overlay"></div>
 
     <!-- Hamburger toggle button - always visible -->
-    <button id="hamburgerToggle" class="hamburger-toggle btn btn-outline-primary shifted">
+    <button id="hamburgerToggle" class="hamburger-toggle btn btn-outline-primary">
         <span id="hamburgerIcon">☰</span>
     </button>
 
     <!-- Sidebar -->
-    <nav id="sidebar" class="bg-dark text-light p-3">
+    <nav id="sidebar" class="bg-dark text-light p-3 closed">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h3 class="fw-bold m-0">E-Stocks</h3>
             <span id="sidebarToggle" class="btn btn-sm btn-outline-light d-lg-none">✕</span>
@@ -86,21 +86,23 @@
         <ul class="nav flex-column gap-2">
             <li><a class="nav-link text-light" asp-controller="Home" asp-action="Index">Home</a></li>
             <li><a class="nav-link text-light" asp-controller="Stocks" asp-action="Index">Stocks</a></li>
-            <li><a class="nav-link text-light" asp-controller="Dividends" asp-action="Index">Dividends</a></li>
+            
 
             @if (User.Identity?.IsAuthenticated == true)
             {
                 <li><a class="nav-link text-light" asp-controller="Funds" asp-action="Index">Funds</a></li>
                 <li><a class="nav-link text-light" asp-controller="Wallets" asp-action="Index">Wallet</a></li>
                 <li><a class="nav-link text-light" asp-controller="Orders" asp-action="Index">Orders</a></li>
+                <li><a class="nav-link text-light" asp-controller="Dividends" asp-action="Index">Dividends</a></li>
             }
             else
             {
+                <li><a class="nav-link text-light" asp-controller="Funds" asp-action="Index">Explore Funds </a></li>
                 <li><a class="nav-link text-light" asp-controller="Users" asp-action="Login">Login</a></li>
                 <li><a class="nav-link text-light" asp-controller="Users" asp-action="Register">Register</a></li>
-                <li><a class="nav-link text-light" asp-controller="Funds" asp-action="Index">Explore Funds </a></li>
             }
         </ul>
+
 
         <!-- Bottom Section -->
         <div class="position-absolute bottom-0 start-0 w-100 p-3">
@@ -111,15 +113,21 @@
                     @Html.AntiForgeryToken()
                     <button class="btn btn-outline-light w-100 mb-2">Logout</button>
                 </form>
+
+                <!-- NEW: Account Dashboard Button -->
+                <a class="btn btn-outline-info w-100 mb-2" asp-controller="Dashboard" asp-action="Index">
+                    Account Dashboard
+                </a>
             }
             <a class="nav-link text-light text-center" asp-controller="Home" asp-action="Privacy">
                 Privacy Policy
             </a>
         </div>
+
     </nav>
 
     <!-- Main content area -->
-    <div id="main-content">
+    <div id="main-content" class="expanded">
         <!-- Page content -->
         <main class="flex-grow-1 p-4" style="margin-top: 60px;">
             @RenderBody()
@@ -140,75 +148,160 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
 
     <script>
-        const sidebar = document.getElementById("sidebar");
-        const mainContent = document.getElementById("main-content");
-        const overlay = document.getElementById("sidebar-overlay");
-        const sidebarToggle = document.getElementById("sidebarToggle");
-        const hamburgerToggle = document.getElementById("hamburgerToggle");
-        const hamburgerIcon = document.getElementById("hamburgerIcon");
+        (function () {
+            const sidebar = document.getElementById("sidebar");
+            const mainContent = document.getElementById("main-content");
+            const overlay = document.getElementById("sidebar-overlay");
+            const sidebarToggle = document.getElementById("sidebarToggle");
+            const hamburgerToggle = document.getElementById("hamburgerToggle");
+            const hamburgerIcon = document.getElementById("hamburgerIcon");
 
-        // Function to check if mobile view
-        function isMobile() {
-            return window.innerWidth < 992;
-        }
+            // Storage key
+            const STORAGE_KEY = 'sidebarClosed';
 
-        // Update hamburger icon based on sidebar state
-        function updateHamburgerIcon() {
-            if (sidebar.classList.contains("closed") || sidebar.classList.contains("open") === false) {
-                hamburgerIcon.textContent = "☰";
-            } else {
-                hamburgerIcon.textContent = "✕";
-            }
-        }
+            // Utility: apply UI according to whether sidebar is closed (true) or open (false)
+            function applySidebarState(isClosed) {
+                if (!sidebar || !mainContent || !hamburgerToggle || !hamburgerIcon) return;
 
-        // Main hamburger toggle (works for both mobile and desktop)
-        hamburgerToggle.addEventListener("click", () => {
-            if (!isMobile()) {
-                // Desktop behavior
-                sidebar.classList.toggle("closed");
-                mainContent.classList.toggle("expanded");
-                hamburgerToggle.classList.toggle("shifted");
-            } else {
-                // Mobile behavior
-                if (sidebar.classList.contains("open")) {
-                    sidebar.classList.remove("open");
-                    overlay.classList.remove("show");
+                // set class on sidebar
+                if (isClosed) {
+                    sidebar.classList.add('closed');
                 } else {
-                    sidebar.classList.add("open");
-                    overlay.classList.add("show");
+                    sidebar.classList.remove('closed');
+                }
+
+                // reversed behavior:
+                // when sidebar is closed => main content expands (full width)
+                if (isClosed) {
+                    mainContent.classList.add('expanded');
+                    hamburgerToggle.classList.remove('shifted');
+                } else {
+                    mainContent.classList.remove('expanded');
+                    hamburgerToggle.classList.add('shifted');
+                }
+
+                // update hamburger icon
+                hamburgerIcon.textContent = isClosed ? '☰' : '✕';
+            }
+
+            // Save to localStorage
+            function saveSidebarState(isClosed) {
+                try {
+                    localStorage.setItem(STORAGE_KEY, isClosed ? '1' : '0');
+                } catch (err) {
+                    // localStorage may be disabled — fail silently
+                    console.warn('Could not save sidebar state', err);
                 }
             }
-            updateHamburgerIcon();
-        });
 
-        // Mobile close button inside sidebar
-        if (sidebarToggle) {
-            sidebarToggle.addEventListener("click", () => {
-                sidebar.classList.remove("open");
-                overlay.classList.remove("show");
-                updateHamburgerIcon();
-            });
-        }
-
-        // Close sidebar when clicking overlay
-        overlay.addEventListener("click", () => {
-            sidebar.classList.remove("open");
-            overlay.classList.remove("show");
-            updateHamburgerIcon();
-        });
-
-        // Handle window resize
-        window.addEventListener("resize", () => {
-            if (!isMobile()) {
-                sidebar.classList.remove("open");
-                overlay.classList.remove("show");
+            // Read from localStorage; returns boolean or null if not set
+            function readSidebarState() {
+                try {
+                    const v = localStorage.getItem(STORAGE_KEY);
+                    if (v === null) return null;
+                    return v === '1';
+                } catch (err) {
+                    return null;
+                }
             }
-            updateHamburgerIcon();
-        });
 
-        // Initialize
-        updateHamburgerIcon();
+            // Toggle function used by click handlers
+            function toggleSidebar() {
+                const isClosedNow = sidebar.classList.contains('closed');
+                // toggle
+                const toClosed = !isClosedNow;
+                applySidebarState(toClosed);
+                saveSidebarState(toClosed);
+                // also ensure overlay is hidden for desktop
+                overlay.classList.remove('show');
+            }
+
+            // Initialize state on load
+            function init() {
+                // If a saved state exists, use it. Otherwise keep whatever the DOM markup provides.
+                const saved = readSidebarState();
+
+                if (typeof saved === 'boolean') {
+                    applySidebarState(saved);
+                } else {
+                    // No saved preference: derive based on existing sidebar class in DOM (fallback)
+                    const currentlyClosed = sidebar.classList.contains('closed');
+                    applySidebarState(currentlyClosed);
+                }
+
+                // Hook up hamburger click
+                if (hamburgerToggle) {
+                    hamburgerToggle.addEventListener('click', (e) => {
+                        // For mobile, we still toggle open/close but also show overlay
+                        if (window.innerWidth < 992) {
+                            // mobile: toggle "open" class and overlay
+                            if (sidebar.classList.contains('open')) {
+                                sidebar.classList.remove('open');
+                                overlay.classList.remove('show');
+                                // save state: treat mobile 'open' as not closed (false)
+                                applySidebarState(true); // keep desktop collapsed layout when mobile closed
+                                saveSidebarState(true);
+                            } else {
+                                sidebar.classList.add('open');
+                                overlay.classList.add('show');
+                                // when mobile open, reflect saved state as open = not closed
+                                applySidebarState(false);
+                                saveSidebarState(false);
+                            }
+                        } else {
+                            // desktop: normal toggle that changes layout (and persists)
+                            toggleSidebar();
+                        }
+                    });
+                }
+
+                // Mobile close button inside sidebar (the small X)
+                if (sidebarToggle) {
+                    sidebarToggle.addEventListener('click', () => {
+                        sidebar.classList.remove('open');
+                        overlay.classList.remove('show');
+                        // closing mobile preserves the desktop closed state (we save closed = true)
+                        applySidebarState(true);
+                        saveSidebarState(true);
+                    });
+                }
+
+                // Close sidebar when clicking overlay (mobile)
+                if (overlay) {
+                    overlay.addEventListener('click', () => {
+                        sidebar.classList.remove('open');
+                        overlay.classList.remove('show');
+                        applySidebarState(true);
+                        saveSidebarState(true);
+                    });
+                }
+
+                // Update on resize: ensure mobile/desktop classes align with saved preference
+                window.addEventListener('resize', () => {
+                    // if switching between mobile/desktop, reapply saved state (so layout remains consistent)
+                    const savedNow = readSidebarState();
+                    if (typeof savedNow === 'boolean') {
+                        applySidebarState(savedNow);
+                    }
+                });
+            }
+
+            // Run init after DOM ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+
+            // expose for debugging if needed
+            window.__estocks_sidebar = {
+                apply: applySidebarState,
+                save: saveSidebarState,
+                read: readSidebarState
+            };
+        })();
     </script>
+
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

@@ -35,3 +35,33 @@
         <a asp-action="Register" class="btn btn-link ms-2 text-light">Register</a>
     </form>
 </div>
+
+<!-- Deactivated Account Modal -->
+<div class="modal fade" id="deactivatedModal" tabindex="-1" aria-labelledby="deactivatedModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-light">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deactivatedModalLabel">Account Deactivated</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Your account has been deactivated. Please contact support for assistance.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var isDeactivated = "@TempData["AccountDeactivated"]";
+            if (isDeactivated === "true") {
+                var deactivatedModal = new bootstrap.Modal(document.getElementById('deactivatedModal'));
+                deactivatedModal.show();
+            }
+        });
+    </script>
+}

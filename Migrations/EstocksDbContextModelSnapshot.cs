@@ -30,8 +30,9 @@ namespace WebApplication2.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("BankId"));
 
-                    b.Property<int>("AccountNumber")
-                        .HasColumnType("int");
+                    b.Property<string>("AccountNumber")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<string>("AccountTitle")
                         .IsRequired()
