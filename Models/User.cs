@@ -35,5 +35,6 @@ namespace WebApplication2.Models
         public ICollection<Dividend>? Dividends { get; set; }
         public ICollection<FundInvestment>? FundInvestments { get; set; }
         public ICollection<SpotTrading>? SpotTradings { get; set; }
+        public ICollection<Bank>? Banks { get; set; }
     }
 }

@@ -22,6 +22,39 @@ namespace WebApplication2.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
+            modelBuilder.Entity("WebApplication2.Models.Bank", b =>
+                {
+                    b.Property<int>("BankId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("BankId"));
+
+                    b.Property<int>("AccountNumber")
+                        .HasColumnType("int");
+
+                    b.Property<string>("AccountTitle")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("AccountType")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("BankName")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("BankId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Banks");
+                });
+
             modelBuilder.Entity("WebApplication2.Models.Dividend", b =>
                 {
                     b.Property<int>("DividendId")
@@ -364,6 +397,16 @@ namespace WebApplication2.Migrations
                     b.ToTable("Wallets");
                 });
 
+            modelBuilder.Entity("WebApplication2.Models.Bank", b =>
+                {
+                    b.HasOne("WebApplication2.Models.User", "User")
+                        .WithMany("Banks")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("WebApplication2.Models.Dividend", b =>
                 {
                     b.HasOne("WebApplication2.Models.Stock", "Stock")
@@ -531,6 +574,8 @@ namespace WebApplication2.Migrations
 
             modelBuilder.Entity("WebApplication2.Models.User", b =>
                 {
+                    b.Navigation("Banks");
+
                     b.Navigation("Dividends");
 
                     b.Navigation("FundInvestments");

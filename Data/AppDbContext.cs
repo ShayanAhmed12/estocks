@@ -23,6 +23,9 @@ namespace WebApplication2.Data
         public DbSet<Fund> Funds { get; set; }
         public DbSet<FundInvestment> FundInvestments { get; set; }
 
+        // Added Bank DbSet
+        public DbSet<Bank> Banks { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Foreign Key Relationships
@@ -139,6 +142,13 @@ namespace WebApplication2.Data
                 .HasForeignKey(fi => fi.UserId)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            // User -> Banks (new)
+            modelBuilder.Entity<Bank>()
+                .HasOne(b => b.User)
+                .WithMany(u => u.Banks)
+                .HasForeignKey(b => b.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             // Primary keys (optional, EF Core detects them automatically via [Key])
             modelBuilder.Entity<User>().HasKey(u => u.UserId);
             modelBuilder.Entity<Wallet>().HasKey(w => w.WalletId);
@@ -151,6 +161,7 @@ namespace WebApplication2.Data
             modelBuilder.Entity<Dividend>().HasKey(d => d.DividendId);
             modelBuilder.Entity<Fund>().HasKey(fu => fu.FundId);
             modelBuilder.Entity<FundInvestment>().HasKey(fi => fi.InvestmentId);
+            modelBuilder.Entity<Bank>().HasKey(b => b.BankId);
         }
     }
 }
