@@ -7,6 +7,7 @@
     int currentValue = ViewBag.CurrentValue ?? 0;
     int profitLoss = ViewBag.ProfitLoss ?? 0;
     var userStocks = ViewBag.UserStocks as List<WebApplication2.Models.Stock> ?? new List<WebApplication2.Models.Stock>();
+    var userBanks = ViewBag.UserBanks as List<WebApplication2.Models.Bank> ?? new List<WebApplication2.Models.Bank>();
 }
 
 <style>
@@ -245,7 +246,6 @@
         </div>
     }
 
-   
     <div class="wallet-card text-center">
         <p class="stat-label mb-2">Current Balance</p>
         <div class="balance-display">@Model.Balance.ToString("N0") PKR</div>
@@ -254,6 +254,7 @@
             + Add Funds
         </button>
     </div>
+   
 
     <!-- Stats Row -->
     <div class="row mb-4">
@@ -685,7 +686,7 @@
                 <h5 class="modal-title" id="addFundsModalLabel" style="color: #1e90ff;">Add Funds to Wallet</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form asp-controller="Wallets" asp-action="AddFunds" method="post">
+            <form asp-controller="Wallets" asp-action="AddFunds" method="post" id="addFundsForm">
                 @Html.AntiForgeryToken()
                 <div class="modal-body">
                     <div class="mb-3">
@@ -702,10 +703,34 @@
                             <button type="button" class="btn btn-sm btn-outline-primary quick-amount" data-amount="5000">5,000 PKR</button>
                         </div>
                     </div>
+
+                    @if (userBanks.Any())
+                    {
+                        <div class="mb-3">
+                            <label for="bankSelect" class="form-label">Select Bank</label>
+                            <select class="form-select" id="bankSelect" name="bankId" required>
+                                <option value="">-- Select bank --</option>
+                                @foreach (var b in userBanks)
+                                {
+                                    <option value="@b.BankId">@b.BankName - @("****" + b.AccountNumber.ToString().Substring(Math.Max(0, b.AccountNumber.ToString().Length - 4)))</option>
+                                }
+                            </select>
+                            <div class="form-text" style="color: #9aa4ae;">Funds will be recorded as added from the selected bank.</div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="mb-3">
+                            <div class="alert alert-warning mb-2">
+                                You don't have any bank details saved. Please add a bank account before adding funds.
+                            </div>
+                            <a href="@Url.Action("Create", "Banks")" class="btn btn-outline-primary">Add Bank Details</a>
+                        </div>
+                    }
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Add Funds</button>
+                    <button type="submit" class="btn btn-primary" id="addFundsSubmit" @(userBanks.Any() ? "" : "disabled")>Add Funds</button>
                 </div>
             </form>
         </div>
@@ -720,6 +745,26 @@
                 document.getElementById('amount').value = amount;
             });
         });
+        const addFundsForm = document.getElementById('addFundsForm');
+        const bankSelect = document.getElementById('bankSelect');
+        const addFundsSubmit = document.getElementById('addFundsSubmit');
+
+        if (bankSelect) {
+            addFundsForm.addEventListener('submit', function (e) {
+                if (!bankSelect.value) {
+                    e.preventDefault();
+                    alert('Please select a bank to add funds from.');
+                }
+            });
+
+            bankSelect.addEventListener('change', function () {
+                if (this.value) {
+                    addFundsSubmit.removeAttribute('disabled');
+                } else {
+                    addFundsSubmit.setAttribute('disabled', 'disabled');
+                }
+            });
+        }
         function closeFuturePosition(tradingId) {
             fetch(`/FutureContracts/Close/${tradingId}`, {
                 method: 'POST',

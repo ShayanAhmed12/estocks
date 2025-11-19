@@ -6,6 +6,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System;
+using System.Collections.Generic;
 
 namespace WebApplication2.Controllers
 {
@@ -34,16 +35,20 @@ namespace WebApplication2.Controllers
                 return RedirectToAction("Login", "Users");
             }
 
-            // Get user with wallet and stocks
+            // Get user with wallet, stocks and banks
             var user = await _context.Users
                 .Include(u => u.Wallets)
                 .Include(u => u.Stocks)
+                .Include(u => u.Banks) // include banks
                 .FirstOrDefaultAsync(u => u.UserId == userId);
 
             if (user == null)
             {
                 return NotFound();
             }
+
+            // Provide user's banks to the view (may be empty)
+            ViewBag.UserBanks = user.Banks?.ToList() ?? new List<Bank>();
 
             // Get or create wallet for user
             var wallet = await _context.Wallets.FirstOrDefaultAsync(w => w.UserId == userId);
@@ -158,14 +163,10 @@ namespace WebApplication2.Controllers
             return View(wallet);
         }
 
-
-
-
-
         // POST: Wallets/AddFunds
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddFunds(int amount)
+        public async Task<IActionResult> AddFunds(int amount, int? bankId)
         {
             if (!User.Identity.IsAuthenticated)
             {
@@ -181,6 +182,27 @@ namespace WebApplication2.Controllers
             if (amount <= 0)
             {
                 TempData["Error"] = "Please enter a valid amount greater than 0.";
+                return RedirectToAction("Index");
+            }
+
+            // Ensure user has banks and selected a bank
+            var userBanks = await _context.Banks.Where(b => b.UserId == userId).ToListAsync();
+            if (userBanks == null || userBanks.Count == 0)
+            {
+                TempData["Error"] = "You must add a bank account before adding funds. Please add bank details first.";
+                return RedirectToAction("Index");
+            }
+
+            if (!bankId.HasValue)
+            {
+                TempData["Error"] = "Please select a bank to add funds from.";
+                return RedirectToAction("Index");
+            }
+
+            var bank = userBanks.FirstOrDefault(b => b.BankId == bankId.Value);
+            if (bank == null)
+            {
+                TempData["Error"] = "Selected bank not found or does not belong to you.";
                 return RedirectToAction("Index");
             }
 
@@ -204,9 +226,27 @@ namespace WebApplication2.Controllers
                 _context.Wallets.Update(wallet);
             }
 
+            // Optionally record a transaction referencing this add-funds event
+            var tx = new Transaction
+            {
+                WalletId = wallet.WalletId,
+                UserId = userId,
+                StockId = null,
+                Quantity = 0,
+                TransactionType = "ADD_FUNDS"
+            };
+            _context.Transactions.Add(tx);
+
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = $"Successfully added {amount:N0} PKR to your wallet!";
+            // Mask account number display for privacy
+            string acctDisplay = bank.AccountNumber.ToString();
+            if (acctDisplay.Length > 4)
+            {
+                acctDisplay = "****" + acctDisplay.Substring(acctDisplay.Length - 4);
+            }
+
+            TempData["Success"] = $"Successfully added {amount:N0} PKR to your wallet from {bank.BankName} ({acctDisplay}).";
             return RedirectToAction("Index");
         }
     }
