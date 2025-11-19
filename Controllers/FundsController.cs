@@ -122,7 +122,7 @@ namespace WebApplication2.Controllers
 
             if (wallet.Balance < amount)
             {
-                TempData["Error"] = $"Insufficient balance. Required: ${amount:N0}, Available: ${wallet.Balance:N0}";
+                TempData["Error"] = $"Insufficient balance. Required: PKR {amount:N0}, Available: PKR {wallet.Balance:N0}";
                 return RedirectToAction("Details", new { id });
             }
 
@@ -139,7 +139,7 @@ namespace WebApplication2.Controllers
 
                 if (units <= 0)
                 {
-                    TempData["Error"] = $"Investment amount too small for NAV ${nav:N2}. Increase amount.";
+                    TempData["Error"] = $"Investment amount too small for NAV PKR {nav:N2}. Increase amount.";
                     return RedirectToAction("Details", new { id });
                 }
 
@@ -158,7 +158,7 @@ namespace WebApplication2.Controllers
                 // Double-check wallet sufficiency (in case amount was borderline)
                 if (wallet.Balance < actualAmountUsedInt)
                 {
-                    TempData["Error"] = $"Insufficient balance after rounding. Required: ${actualAmountUsedInt:N0}, Available: ${wallet.Balance:N0}";
+                    TempData["Error"] = $"Insufficient balance after rounding. Required: PKR {actualAmountUsedInt:N0}, Available: PKR {wallet.Balance:N0}";
                     return RedirectToAction("Details", new { id });
                 }
 
@@ -194,7 +194,7 @@ namespace WebApplication2.Controllers
 
                 // Build friendly message showing units (formatted with the chosen precision)
                 string unitsText = units.ToString($"F{PRECISION}");
-                TempData["Success"] = $"Invested ${actualAmountUsedInt:N0} into {fund.FundName} at NAV ${nav:N2}. Units purchased: {unitsText}";
+                TempData["Success"] = $"Invested PKR {actualAmountUsedInt:N0} into {fund.FundName} at NAV PKR {nav:N2}. Units purchased: {unitsText}";
 
             }
             catch (Exception ex)

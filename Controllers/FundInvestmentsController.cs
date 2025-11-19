@@ -111,7 +111,7 @@ namespace WebApplication2.Controllers
 
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = $"Successfully invested ${amount:N0} in {fund.FundName} ({units:F2} units).";
+            TempData["Success"] = $"Successfully invested PKR {amount:N0} in {fund.FundName} ({units:F2} units).";
             return RedirectToAction("Details", "Funds", new { id = fundId });
         }
 
