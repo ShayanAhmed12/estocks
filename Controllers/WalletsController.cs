@@ -249,5 +249,74 @@ namespace WebApplication2.Controllers
             TempData["Success"] = $"Successfully added {amount:N0} PKR to your wallet from {bank.BankName} ({acctDisplay}).";
             return RedirectToAction("Index");
         }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> WithdrawFunds(int amount, int? bankId)
+        {
+            if (!User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Login", "Users");
+            }
+
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+            {
+                return RedirectToAction("Login", "Users");
+            }
+
+            // Validate amount
+            if (amount <= 0)
+            {
+                TempData["Error"] = "Please enter a valid amount greater than 0.";
+                return RedirectToAction("Index");
+            }
+
+            // Get wallet
+            var wallet = await _context.Wallets.FirstOrDefaultAsync(w => w.UserId == userId);
+            if (wallet == null)
+            {
+                TempData["Error"] = "Wallet not found.";
+                return RedirectToAction("Index");
+            }
+
+            // Check if user has enough balance
+            if (wallet.Balance < amount)
+            {
+                TempData["Error"] = "Insufficient balance.";
+                return RedirectToAction("Index");
+            }
+
+            // Ensure user has banks
+            var userBanks = await _context.Banks.Where(b => b.UserId == userId).ToListAsync();
+            if (userBanks == null || userBanks.Count == 0)
+            {
+                TempData["Error"] = "You must add a bank account before withdrawing funds.";
+                return RedirectToAction("Index");
+            }
+
+            // Ensure bank is selected
+            if (!bankId.HasValue)
+            {
+                TempData["Error"] = "Please select a bank to withdraw funds into.";
+                return RedirectToAction("Index");
+            }
+
+            var bank = userBanks.FirstOrDefault(b => b.BankId == bankId.Value);
+            if (bank == null)
+            {
+                TempData["Error"] = "Selected bank not found.";
+                return RedirectToAction("Index");
+            }
+
+            // Deduct balance
+            wallet.Balance -= amount;
+            wallet.LastUpdated = DateTime.Now;
+
+            _context.Wallets.Update(wallet);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = $"Successfully withdrawn {amount} to {bank.BankName}.";
+            return RedirectToAction("Index");
+        }
     }
 }
