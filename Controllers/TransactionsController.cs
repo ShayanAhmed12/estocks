@@ -14,14 +14,13 @@ namespace WebApplication2.Controllers
             _context = context;
         }
 
-        // GET: /Transactions
+
         public async Task<IActionResult> Index()
         {
             var list = await _context.Transactions.ToListAsync();
             return Json(list);
         }
 
-        // GET: /Transactions/Details/5
         public async Task<IActionResult> Details(int id)
         {
             var transaction = await _context.Transactions.FindAsync(id);
@@ -29,7 +28,7 @@ namespace WebApplication2.Controllers
             return Json(transaction);
         }
 
-        // POST: /Transactions/Create
+
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] Transaction transaction)
         {
@@ -39,7 +38,6 @@ namespace WebApplication2.Controllers
             return CreatedAtAction(nameof(Details), new { id = transaction.TransactionId }, transaction);
         }
 
-        // POST: /Transactions/Edit/5
         [HttpPost]
         public async Task<IActionResult> Edit(int id, [FromBody] Transaction transaction)
         {
@@ -49,7 +47,7 @@ namespace WebApplication2.Controllers
             return NoContent();
         }
 
-        // POST: /Transactions/Delete/5
+
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {

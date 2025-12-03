@@ -15,10 +15,10 @@ namespace WebApplication2.Controllers
             _context = context;
         }
 
-        // GET: /FutureContracts
+
         public async Task<IActionResult> Index()
         {
-            // Check for expired contracts and auto-close them
+            
             await AutoCloseExpiredContracts();
 
             var contracts = await _context.FutureContracts
@@ -30,7 +30,7 @@ namespace WebApplication2.Controllers
             return View(contracts);
         }
 
-        // GET: /FutureContracts/Details/5
+
         public async Task<IActionResult> Details(int id)
         {
             var contract = await _context.FutureContracts
@@ -43,21 +43,21 @@ namespace WebApplication2.Controllers
             return View(contract);
         }
 
-        // POST: /FutureContracts/CreateLong (Buy Contract)
+
         [HttpPost]
         public async Task<IActionResult> CreateLong([FromBody] CreateContractRequest request)
         {
             return await CreateContract(request, "LONG");
         }
 
-        // POST: /FutureContracts/CreateShort (Sell Contract)
+
         [HttpPost]
         public async Task<IActionResult> CreateShort([FromBody] CreateContractRequest request)
         {
             return await CreateContract(request, "SHORT");
         }
 
-        // Private method to handle both LONG and SHORT (FIXED - Same as spot logic)
+
         private async Task<IActionResult> CreateContract(CreateContractRequest request, string positionType)
         {
             try
@@ -65,26 +65,26 @@ namespace WebApplication2.Controllers
                 if (request == null)
                     return Json(new { success = false, message = "Contract data is required" });
 
-                // Get authenticated user ID
+             
                 var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
                 {
                     return Json(new { success = false, message = "User not authenticated" });
                 }
 
-                // Get user's wallet
+  
                 var wallet = await _context.Wallets.FirstOrDefaultAsync(w => w.UserId == userId);
                 if (wallet == null)
                 {
                     return Json(new { success = false, message = "Wallet not found" });
                 }
 
-                // Calculate total cost and margin
+ 
                 int totalCost = request.Quantity * request.ContractPrice;
                 int notional = request.Quantity * request.ContractPrice;
                 int margin = (int)Math.Ceiling(notional * 0.15);
 
-                // Check margin availability
+
                 if (wallet.Balance < margin)
                 {
                     return Json(new
@@ -94,21 +94,20 @@ namespace WebApplication2.Controllers
                     });
                 }
 
-                // Deduct ONLY margin (not full cost)
                 wallet.Balance -= margin;
                 wallet.LastUpdated = DateTime.Now;
 
-                // Get or create stock record
+
                 var stock = await _context.Stocks.FindAsync(request.StockId);
                 if (stock == null)
                 {
                     return Json(new { success = false, message = "Stock not found" });
                 }
 
-                // Update stock price
+         
                 stock.Price = request.ContractPrice;
 
-                // Create or get the future contract
+         
                 var contract = await _context.FutureContracts
                     .FirstOrDefaultAsync(fc => fc.StockId == request.StockId &&
                                               fc.ExpiryDate == request.ExpiryDate &&
@@ -124,10 +123,10 @@ namespace WebApplication2.Controllers
                         ContractType = positionType
                     };
                     _context.FutureContracts.Add(contract);
-                    await _context.SaveChangesAsync(); // Save to get ContractId
+                    await _context.SaveChangesAsync(); 
                 }
 
-                // Create FutureTrading entry
+        
                 var futureTrading = new FutureTrading
                 {
                     UserId = userId,
@@ -138,7 +137,7 @@ namespace WebApplication2.Controllers
                 };
                 _context.FutureTradings.Add(futureTrading);
 
-                // Create Order - EXACTLY like spot
+    
                 string orderType = positionType == "LONG" ? "future_long" : "future_short";
                 var order = new Order
                 {
@@ -151,7 +150,7 @@ namespace WebApplication2.Controllers
                 };
                 _context.Orders.Add(order);
 
-                // Create Transaction - EXACTLY like spot
+      
                 string transactionType = positionType == "LONG" ? "BUY_FUTURE_LONG" : "SELL_FUTURE_SHORT";
                 var transaction = new Transaction
                 {
@@ -163,11 +162,11 @@ namespace WebApplication2.Controllers
                 };
                 _context.Transactions.Add(transaction);
 
-                // Debug: Check what's being added
+      
                 Console.WriteLine($"Adding Order: UserId={userId}, StockId={request.StockId}, Type={orderType}");
                 Console.WriteLine($"Adding Transaction: WalletId={wallet.WalletId}, UserId={userId}, StockId={request.StockId}, Type={transactionType}");
 
-                // Save all changes
+
                 await _context.SaveChangesAsync();
 
                 return Json(new
@@ -189,7 +188,7 @@ namespace WebApplication2.Controllers
             }
         }
 
-        // POST: /FutureContracts/Close/{id}
+     
         [HttpPost]
         public async Task<IActionResult> Close(int id)
         {
@@ -201,7 +200,7 @@ namespace WebApplication2.Controllers
                     return Json(new { success = false, message = "Not authenticated" });
                 }
 
-                // Find the future trading record
+          
                 var futureTrading = await _context.FutureTradings
                     .Include(ft => ft.Contract)
                         .ThenInclude(c => c.Stock)
@@ -220,44 +219,44 @@ namespace WebApplication2.Controllers
             }
         }
 
-        // Private method to close a position 
+  
         private async Task<IActionResult> ClosePosition(FutureTrading futureTrading, int userId)
         {
             try
             {
-                // Get user's wallet
+                
                 var wallet = await _context.Wallets.FirstOrDefaultAsync(w => w.UserId == userId);
                 if (wallet == null)
                 {
                     return Json(new { success = false, message = "Wallet not found" });
                 }
 
-                // Get current stock price
+   
                 var stock = await _context.Stocks.FindAsync(futureTrading.Contract.StockId);
                 int currentPrice = stock?.Price ?? futureTrading.Price;
 
-                // Calculate profit/loss
+      
                 int profitLoss;
                 if (futureTrading.Contract.ContractType == "LONG")
                 {
                     profitLoss = (currentPrice - futureTrading.Price) * futureTrading.Quantity;
                 }
-                else // SHORT
+                else 
                 {
                     profitLoss = (futureTrading.Price - currentPrice) * futureTrading.Quantity;
                 }
 
-                // recompute notional & margin
+           
                 int notional = futureTrading.Price * futureTrading.Quantity;
                 int margin = (int)Math.Ceiling(notional * 0.15);
                 int settlementAmount = margin + profitLoss;
 
-                // return margin + profit/loss
+        
                 wallet.Balance += settlementAmount;
                 wallet.LastUpdated = DateTime.Now;
 
 
-                // Close the related order
+        
                 var order = await _context.Orders
                     .FirstOrDefaultAsync(o => o.UserId == userId &&
                                             o.StockId == futureTrading.Contract.StockId &&
@@ -269,7 +268,7 @@ namespace WebApplication2.Controllers
                     order.OrderStatus = false;
                 }
 
-                // Create closing transaction - EXACTLY like spot
+      
                 string transactionType = futureTrading.Contract.ContractType == "LONG"
                     ? "CLOSE_FUTURE_LONG"
                     : "CLOSE_FUTURE_SHORT";
@@ -284,7 +283,7 @@ namespace WebApplication2.Controllers
                 };
                 _context.Transactions.Add(closeTransaction);
 
-                // Remove future trading record
+      
                 _context.FutureTradings.Remove(futureTrading);
 
                 await _context.SaveChangesAsync();
@@ -310,7 +309,7 @@ namespace WebApplication2.Controllers
             }
         }
 
-        // Background job to auto-close expired contracts
+
         private async Task AutoCloseExpiredContracts()
         {
             var expiredTradings = await _context.FutureTradings
@@ -330,7 +329,7 @@ namespace WebApplication2.Controllers
             }
         }
 
-        // POST: /FutureContracts/Delete/5
+
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
@@ -344,7 +343,7 @@ namespace WebApplication2.Controllers
         }
     }
 
-    // Helper class for Create request
+
     public class CreateContractRequest
     {
         public int StockId { get; set; }

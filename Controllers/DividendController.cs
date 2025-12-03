@@ -18,7 +18,7 @@ namespace WebApplication2.Controllers
             _context = context;
         }
 
-        // GET: /Dividends -> redirect users to their dividends (or to login)
+
         public IActionResult Index()
         {
             if (!User.Identity.IsAuthenticated)
@@ -27,8 +27,7 @@ namespace WebApplication2.Controllers
             return RedirectToAction(nameof(MyDividends));
         }
 
-        // GET: /Dividends/MyDividends
-        // Shows only the dividends belonging to the currently logged-in user
+ 
         [Authorize]
         public async Task<IActionResult> MyDividends()
         {

@@ -17,22 +17,22 @@ namespace WebApplication2.Controllers
             _context = context;
         }
 
-        // GET: /Orders
+  
         public async Task<IActionResult> Index()
         {
-            // get current user id from claims
+           
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null) return RedirectToAction("Login", "Users");
 
             if (!int.TryParse(userIdClaim.Value, out var userId)) return RedirectToAction("Login", "Users");
 
-            // load transactions for the user with stock navigation
+        
             var transactions = await _context.Transactions
                 .Include(t => t.Stock)
                 .Where(t => t.UserId == userId && t.StockId != null)
                 .ToListAsync();
 
-            // Aggregate transactions by stock and compute net quantity
+          
             var holdings = transactions
                 .GroupBy(t => t.StockId)
                 .Where(g => g.Key != null)
@@ -45,7 +45,7 @@ namespace WebApplication2.Controllers
                 .Where(h => h.NetQty > 0)
                 .ToList();
 
-            // For each holding create an Order record of type 'holding' if one does not already exist
+      
             var added = false;
             foreach (var h in holdings)
             {
@@ -72,7 +72,7 @@ namespace WebApplication2.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            // Load orders for the user (show these in the view)
+       
             var orders = await _context.Orders
                 .Include(o => o.Stock)
                 .Where(o => o.UserId == userId)
@@ -81,7 +81,6 @@ namespace WebApplication2.Controllers
             return View(orders);
         }
 
-        // GET: /Orders/Details/5
         public async Task<IActionResult> Details(int id)
         {
             var order = await _context.Orders.FindAsync(id);
@@ -89,7 +88,6 @@ namespace WebApplication2.Controllers
             return Json(order);
         }
 
-        // POST: /Orders/Create
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] Order order)
         {
@@ -99,7 +97,7 @@ namespace WebApplication2.Controllers
             return CreatedAtAction(nameof(Details), new { id = order.OrderId }, order);
         }
 
-        // POST: /Orders/Edit/5
+     
         [HttpPost]
         public async Task<IActionResult> Edit(int id, [FromBody] Order order)
         {
@@ -109,7 +107,6 @@ namespace WebApplication2.Controllers
             return NoContent();
         }
 
-        // POST: /Orders/Delete/5
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {

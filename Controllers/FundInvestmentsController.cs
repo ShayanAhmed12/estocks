@@ -14,14 +14,14 @@ namespace WebApplication2.Controllers
             _context = context;
         }
 
-        // GET: /FundInvestments
+
         public async Task<IActionResult> Index()
         {
             var list = await _context.FundInvestments.ToListAsync();
             return Json(list);
         }
 
-        // GET: /FundInvestments/Details/5
+   
         public async Task<IActionResult> Details(int id)
         {
             var investment = await _context.FundInvestments.FindAsync(id);
@@ -29,7 +29,7 @@ namespace WebApplication2.Controllers
             return Json(investment);
         }
 
-        // POST: /FundInvestments/Create
+      
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] FundInvestment investment)
         {
@@ -39,7 +39,6 @@ namespace WebApplication2.Controllers
             return CreatedAtAction(nameof(Details), new { id = investment.InvestmentId }, investment);
         }
 
-        // POST: /FundInvestments/Edit/5
         [HttpPost]
         public async Task<IActionResult> Edit(int id, [FromBody] FundInvestment investment)
         {
@@ -49,7 +48,7 @@ namespace WebApplication2.Controllers
             return NoContent();
         }
 
-        // POST: /FundInvestments/Delete/5
+        
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
@@ -64,7 +63,7 @@ namespace WebApplication2.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Invest(int fundId, int amount)
         {
-            // Get logged-in user
+     
             var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
             {
@@ -72,7 +71,7 @@ namespace WebApplication2.Controllers
                 return RedirectToAction("Details", "Funds", new { id = fundId });
             }
 
-            // Get user's wallet
+    
             var wallet = await _context.Wallets.FirstOrDefaultAsync(w => w.UserId == userId);
             if (wallet == null || wallet.Balance < amount)
             {
@@ -80,7 +79,6 @@ namespace WebApplication2.Controllers
                 return RedirectToAction("Details", "Funds", new { id = fundId });
             }
 
-            // Get the fund
             var fund = await _context.Funds.FirstOrDefaultAsync(f => f.FundId == fundId);
             if (fund == null)
             {
@@ -88,10 +86,9 @@ namespace WebApplication2.Controllers
                 return RedirectToAction("Index", "Funds");
             }
 
-            // Calculate units based on NAV
             decimal units = (decimal)amount / fund.NetAssetValue;
 
-            // Create FundInvestment
+     
             var investment = new FundInvestment
             {
                 FundId = fundId,
@@ -99,12 +96,11 @@ namespace WebApplication2.Controllers
                 Amount = amount,
                 BuyPrice = fund.NetAssetValue,
                 BuyDate = DateTime.Now,
-                Maturity = DateTime.Now.AddYears(1) // example: 1-year maturity
+                Maturity = DateTime.Now.AddYears(1) 
             };
 
             _context.FundInvestments.Add(investment);
 
-            // Deduct wallet balance
             wallet.Balance -= amount;
             wallet.LastUpdated = DateTime.Now;
             _context.Wallets.Update(wallet);
