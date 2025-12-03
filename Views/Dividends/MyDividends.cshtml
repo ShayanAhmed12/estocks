@@ -324,7 +324,7 @@
     </div>
 </div>
 
-<!-- Dividend Details Modal -->
+
 <div class="modal fade" id="dividendDetailsModal" tabindex="-1" aria-labelledby="dividendDetailsLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content">
@@ -360,7 +360,7 @@
 @section Scripts {
     <script>
         (function () {
-            // Search/filter logic 
+
             const searchInput = document.getElementById('divSearch');
             const filterSelect = document.getElementById('divFilter');
             const rows = Array.from(document.querySelectorAll('#dividendsTable tbody tr'));
@@ -390,7 +390,6 @@
             searchInput.addEventListener('input', updateVisibility);
             filterSelect.addEventListener('change', updateVisibility);
 
-            // Populate modal with dividend data 
             const modal = document.getElementById('dividendDetailsModal');
             modal.addEventListener('show.bs.modal', function (e) {
                 const btn = e.relatedTarget;
@@ -408,8 +407,8 @@
                 }
             });
 
-            // initial count
             showingCount.textContent = rows.filter(r => r.style.display !== 'none').length;
         })();
     </script>
 }
+

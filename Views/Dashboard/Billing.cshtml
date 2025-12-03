@@ -6,7 +6,7 @@
 }
 
 <style>
-    /* Reuse dark theme from Account page */
+    
     .dashboard-wrap {
         max-width: 1200px;
         margin: 0 auto;
@@ -20,7 +20,7 @@
         align-items: start;
     }
 
-    /* Left vertical nav */
+    
     .dash-nav {
         display: flex;
         flex-direction: column;
@@ -55,7 +55,7 @@
                 box-shadow: 0 10px 30px rgba(30,144,255,0.06);
             }
 
-    /* Main card */
+    
     .dash-card {
         background: linear-gradient(145deg, #0a1a2f, #050505);
         border-radius: 16px;
@@ -151,7 +151,7 @@
     }
 
     <div class="dashboard-grid">
-        <!-- Left nav -->
+        
         <div class="dash-nav" style="flex-direction: column; padding-top:2rem;">
             <a href="@Url.Action("Index", "Dashboard")" class="text-decoration-none">
                 <div class="nav-box" title="Account">
@@ -164,15 +164,15 @@
             </div>
         </div>
 
-        <!-- Main content -->
+        
         <div>
             <div class="dash-card">
                 <div class="dash-header">
                     <div class="dash-title">Billing</div>
                 </div>
 
-                <!-- Existing form-section for adding new bank details -->
-                <!-- Current Bank Details -->
+                
+                
                 @if (user.Banks != null && user.Banks.Any())
                 {
                     <div class="form-section mt-2 mb-4">
@@ -260,9 +260,9 @@
                         </div>
                     </form>
                 </div>
-            </div> <!-- dash card -->
+            </div> 
         </div>
-    </div> <!-- dashboard grid -->
+    </div> 
 </div>
 
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
@@ -300,15 +300,12 @@
         var bankId = button.getAttribute('data-bankid');
         var bankName = button.getAttribute('data-bankname');
 
-        // Update modal content
         document.getElementById('modalBankName').textContent = bankName;
         document.getElementById('modalBankId').value = bankId;
 
-        // Clear previous password input
         document.getElementById('confirmPasswordModal').value = '';
     });
 
-    // Copy password into hidden input on form submit
     document.getElementById('deleteBankForm').addEventListener('submit', function (e) {
         var pw = document.getElementById('confirmPasswordModal').value;
         if (!pw) {
@@ -319,3 +316,4 @@
         document.getElementById('modalConfirmPassword').value = pw;
     });
 </script>
+

@@ -1,5 +1,4 @@
-﻿/* Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
-for details on configuring this project to bundle and minify static web assets. */
+﻿
 
 a.navbar-brand {
   white-space: normal;
@@ -47,30 +46,30 @@ button.accept-policy {
   line-height: 60px;
 }
 
-/* Override Bootstrap dark color to #050505 and ensure dark theme styles apply everywhere */
+
 [data-bs-theme="dark"] {
-  --app-bg: #050505; /* global background */
-  --card-bg: #050505; /* card background */
+  --app-bg: #050505; 
+  --card-bg: #050505; 
   --muted: #9aa4ae;
   --border: #222222;
   --bs-body-color: #e9eef2;
   --bs-body-bg: #050505;
 }
 
-/* Apply global background and body color */
+
 [data-bs-theme="dark"] body,
 [data-bs-theme="dark"] html {
   background-color: var(--app-bg) !important;
   color: var(--bs-body-color) !important;
 }
 
-/* Force .bg-dark to use the specified override */
+
 .bg-dark {
   background-color: #050505 !important;
   color: #e9eef2 !important;
 }
 
-/* Navbar dark override */
+
 .navbar-dark.bg-dark,
 .navbar-dark.bg-dark .navbar-brand,
 .navbar-dark.bg-dark .nav-link {
@@ -78,7 +77,7 @@ button.accept-policy {
   color: #e9eef2 !important;
 }
 
-/* Cards, modals, dropdowns, popovers */
+
 .card,
 .modal-content,
 .dropdown-menu,
@@ -88,7 +87,7 @@ button.accept-policy {
   border-color: var(--border) !important;
 }
 
-/* Tables - ensure table-dark and table-striped are readable */
+
 .table,
 .table-dark,
 .table.table-dark,
@@ -99,7 +98,7 @@ button.accept-policy {
   color: #e9eef2;
 }
 
-/* Specifically override table header and bordered table borders */
+
 .table.table-dark thead th,
 .table.table-dark thead th {
   background-color: #050505 !important;
@@ -115,7 +114,7 @@ button.accept-policy {
   border-color: var(--border) !important;
 }
 
-/* Form controls */
+
 .form-control,
 .form-select,
 textarea.form-control {
@@ -127,7 +126,7 @@ textarea.form-control {
   color: #9aa4ae !important;
 }
 
-/* Alerts */
+
 .alert {
   background-color: #0b0b0b !important;
   color: #e9eef2 !important;
@@ -137,7 +136,7 @@ textarea.form-control {
   background-color: #3b0b0b !important;
 }
 
-/* Buttons adjustments for contrast */
+
 .btn-secondary {
   background-color: #2a2a2a !important;
   border-color: #2a2a2a !important;
@@ -149,10 +148,10 @@ a.nav-link {
   color: #e9eef2 !important;
 }
 
-/* Footer link */
+
 .footer a { color: #cfe8ff !important; }
 
-/* Ensure utility bg classes that might be used are overridden */
+
 .bg-body,
 .bg-white,
 .bg-light {
@@ -160,14 +159,15 @@ a.nav-link {
   color: #e9eef2 !important;
 }
 
-/* Tables inside cards/tables used by scaffolding */
+
 .card .table {
   background-color: transparent !important;
 }
 
-/* Ensure inputs, selects on focus remain readable */
+
 .form-control:focus,
 .form-select:focus {
   box-shadow: 0 0 0 .2rem rgba(75,136,199,.15) !important;
   border-color: #4b88c7 !important;
 }
+

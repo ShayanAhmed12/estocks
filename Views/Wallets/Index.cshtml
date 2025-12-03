@@ -174,7 +174,7 @@
             box-shadow: 0 6px 20px rgba(30, 144, 255, 0.3);
         }
 
-    /* Make withdraw button match add-funds button exactly */
+    
     .withdraw-funds-btn {
         border-radius: 30px;
         padding: 12px 35px;
@@ -292,7 +292,7 @@
     </div>
    
 
-    <!-- Stats Row -->
+    
     <div class="row mb-4">
         <div class="col-md-4 mb-3">
             <div class="stat-card text-center">
@@ -321,7 +321,7 @@
         </div>
     </div>
 
-    <!-- Stocks Portfolio -->
+    
     <h2 style="color: #1e90ff; font-weight: bold; margin-bottom: 1.5rem; margin-top: 2rem;">My Stocks Portfolio</h2>
 
     <div class="table-card">
@@ -355,7 +355,7 @@
                 </table>
             </div>
 
-            @* Move modals outside table *@
+            
             @foreach (var stock in userStocks)
             {
                 <div class="modal fade" id="stockModal@(stock.StockId)" tabindex="-1" aria-hidden="true">
@@ -417,7 +417,7 @@
 
 
 
-    <!-- Active Futures Positions Section -->
+    
     <h2 style="color: #1e90ff; font-weight: bold; margin-bottom: 1.5rem; margin-top: 2rem;">
         Active Futures Positions 
     </h2>
@@ -431,7 +431,7 @@
             int futuresUnrealizedPL = ViewBag.FuturesUnrealizedPL ?? 0;
         }
 
-        <!-- SUMMARY BAR -->
+        
         @if (futuresMarginHeld > 0)
         {
             <div style="padding: 1.5rem 2rem; background: rgba(18, 43, 74, 0.3); border-bottom: 1px solid #1c2a3d;">
@@ -452,7 +452,7 @@
             </div>
         }
 
-        <!-- FUTURES TABLE -->
+        
         @if (futureTradings.Any())
         {
             <div class="table-responsive">
@@ -528,7 +528,7 @@
                 </table>
             </div>
 
-            <!-- FUTURES MODALS -->
+            
             @foreach (var ft in futureTradings)
             {
                 var currentPrice = ft.Contract?.Stock?.Price ?? ft.Price;
@@ -614,7 +614,7 @@
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
 
-                                <!-- Close futures position -->
+                                
                                 <button class="view-btn"
                                         onclick="openCloseFutureModal(
                                             @ft.FutureTradingId,
@@ -632,7 +632,7 @@
                     </div>
                 </div>
 
-                <!-- Close Futures Confirmation Modal -->
+                
                 <div class="modal fade" id="closeFutureModal" tabindex="-1" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered">
                         <div class="modal-content">
@@ -848,7 +848,6 @@
               });
           });
 
-          // Add funds client-side checks
           (function () {
               const addForm = document.getElementById('addFundsForm');
               const bankAdd = document.getElementById('bankSelectAdd');
@@ -869,7 +868,6 @@
               }
           })();
 
-          // Withdraw client-side checks
           (function () {
               const wForm = document.getElementById('withdrawForm');
               const bankWithdraw = document.getElementById('bankSelectWithdraw');
@@ -927,18 +925,14 @@
 
             FUTURE_TO_CLOSE = id;
 
-            // Calculate margin
             let margin = Math.floor(entry * qty * 0.15);
 
-            // Calculate projected P/L
             let pl = type === "LONG"
                 ? (current - entry) * qty
                 : (entry - current) * qty;
 
-            // Total return to user
             let total = margin + pl;
 
-            // Populate modal fields
             document.getElementById("cf-contractId").innerText = "#" + contractId;
             document.getElementById("cf-type").innerText = type;
             document.getElementById("cf-entry").innerText = entry.toLocaleString() + " PKR";
@@ -952,7 +946,6 @@
 
             document.getElementById("cf-total").innerText = total.toLocaleString() + " PKR";
 
-            // Show modal
             new bootstrap.Modal(document.getElementById('closeFutureModal')).show();
         }
 
@@ -976,3 +969,4 @@
 
     </script>
 }
+

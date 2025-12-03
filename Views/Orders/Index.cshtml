@@ -4,7 +4,6 @@
     ViewData["Title"] = "My Orders";
     var orders = Model?.ToList() ?? new List<WebApplication2.Models.Order>();
 
-    // Compute summary stats
     int totalOrders = orders.Count;
     int totalQuantity = orders.Sum(o => o.Quantity);
     long totalValue = orders.Sum(o => (long)o.Quantity * o.Price);
@@ -55,7 +54,7 @@
         font-weight: 600;
     }
 
-    /* Table */
+    
     .orders-table {
         width: 100%;
         border-collapse: collapse;
@@ -91,7 +90,7 @@
         transform: scale(1.01);
     }
 
-    /* Badges */
+    
     .badge-open {
         background: rgba(40,167,69,0.15);
         color: #28a745;
@@ -116,7 +115,7 @@
         letter-spacing: 0.5px;
     }
 
-    /* Buttons */
+    
     .view-btn {
         background: linear-gradient(135deg, #1e90ff, #0073e6);
         color: white;
@@ -136,7 +135,7 @@
         color: white;
     }
 
-    /* Empty State */
+    
     .empty-state {
         text-align: center;
         padding: 4rem 2rem;
@@ -150,7 +149,7 @@
         margin-bottom: 1.5rem;
     }
 
-    /* Modal Consistency */
+    
     .modal-content {
         background: linear-gradient(145deg, #0a1a2f, #050505);
         border: 1px solid #1c2a3d;
@@ -301,7 +300,7 @@
                 <input id="orderSearch" type="search" class="search-input" placeholder="Search by company, order type, or stock id..." />
                 <select id="orderFilter" class="filter-select">
                     <option value="">All Types</option>
-                    @* gather distinct order types *@
+                    
                     @{
                         var types = orders.Select(o => o.OrderType ?? "").Where(t => !string.IsNullOrEmpty(t)).Distinct().ToList();
                     }
@@ -407,7 +406,7 @@
     </div>
 </div>
 
-<!-- Order Details Modal -->
+
 <div class="modal fade" id="orderDetailsModal" tabindex="-1" aria-labelledby="orderDetailsLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content">
@@ -449,7 +448,7 @@
 @section Scripts {
     <script>
         (function () {
-            // Search/filter logic
+
             const searchInput = document.getElementById('orderSearch');
             const filterSelect = document.getElementById('orderFilter');
             const rows = Array.from(document.querySelectorAll('#ordersTable tbody tr'));
@@ -480,7 +479,6 @@
             searchInput.addEventListener('input', updateVisibility);
             filterSelect.addEventListener('change', updateVisibility);
 
-            // Populate modal with order data (data-order attribute contains JSON)
             const modal = document.getElementById('orderDetailsModal');
             modal.addEventListener('show.bs.modal', function (e) {
                 const btn = e.relatedTarget;
@@ -500,8 +498,8 @@
                 }
             });
 
-            // initial count
             showingCount.textContent = rows.filter(r => r.style.display !== 'none').length;
         })();
     </script>
 }
+

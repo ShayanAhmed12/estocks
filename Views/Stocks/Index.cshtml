@@ -251,7 +251,7 @@
 
 @section Scripts {
     <script>
-        // Search functionality
+
         document.getElementById('searchBox').addEventListener('input', function(e) {
             const searchTerm = e.target.value.toLowerCase();
             const stockItems = document.querySelectorAll('.stock-item');
@@ -268,17 +268,15 @@
             });
         });
 
-        // Filter functionality
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.addEventListener('click', function() {
-                // Update active state
+
                 document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
 
                 const filter = this.getAttribute('data-filter');
                 const stockItems = Array.from(document.querySelectorAll('.stock-item'));
 
-                // Show all items first
                 stockItems.forEach(item => item.style.display = '');
 
                 if (filter === 'gainers') {
@@ -310,13 +308,11 @@
                     });
                 }
 
-                // Rearrange DOM
                 const grid = document.getElementById('stocksGrid');
                 stockItems.forEach(item => grid.appendChild(item));
             });
         });
 
-        // Auto-refresh every 30 seconds
         setInterval(function() {
             location.reload();
         }, 30000);

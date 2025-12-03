@@ -10,7 +10,7 @@
 }
 
 <style>
-    /* Re-using the project's dark theme style conventions */
+    
     .dashboard-wrap {
         max-width: 1200px;
         margin: 0 auto;
@@ -24,7 +24,7 @@
         align-items: start;
     }
 
-    /* Left vertical nav (thin column) */
+    
     .dash-nav {
         display: flex;
         flex-direction: column;
@@ -59,7 +59,7 @@
                 box-shadow: 0 10px 30px rgba(30,144,255,0.06);
             }
 
-    /* Main card */
+    
     .dash-card {
         background: linear-gradient(145deg, #0a1a2f, #050505);
         border-radius: 16px;
@@ -206,7 +206,7 @@
     }
 
     <div class="dashboard-grid">
-        <!-- left nav column -->
+        
         <div class="dash-nav" aria-hidden="false" style="flex-direction: column; padding-top:2rem;">
             <div class="nav-box active" title="Account">
                 Account
@@ -220,7 +220,7 @@
         </div>
 
 
-        <!-- right main column -->
+        
         <div>
             <div class="dash-card">
                 <div class="dash-header">
@@ -250,7 +250,7 @@
                 </div>
 
                 <div class="actions-row">
-                    <!-- Change Password -->
+                    
                     <div class="form-section">
                         <h5 style="color:#1e90ff">Change Password</h5>
                         <p class="muted">Provide current password and a new password. New password must be confirmed.</p>
@@ -278,7 +278,7 @@
                         </form>
                     </div>
 
-                    <!-- Change Email -->
+                    
                     <div class="form-section">
                         <h5 style="color:#1e90ff">Change Email</h5>
                         <p class="muted">Enter a new email address. You will need to confirm using your current password.</p>
@@ -301,7 +301,7 @@
                         </form>
                     </div>
 
-                    <!-- Deactivate Account -->
+                    
                     <div class="form-section">
                         <h5 style="color:#dc3545">Deactivate Account</h5>
                         <p class="muted">This will deactivate your account immediately and log you out. This action is reversible only by an admin.</p>
@@ -322,15 +322,15 @@
                             </div>
                         </form>
                     </div>
-                </div> <!-- actions row -->
-            </div> <!-- dash card -->
+                </div> 
+            </div> 
         </div>
-    </div> <!-- grid -->
+    </div> 
 </div>
 
 @section Scripts {
     <script>
-        // client-side password match check (friendly)
+
         (function () {
             const newPw = document.getElementById('newPassword');
             const confirmPw = document.getElementById('confirmPassword');
@@ -355,3 +355,4 @@
         }
     </script>
 }
+

@@ -237,7 +237,7 @@
 
     @if (Model != null && Model.Any())
     {
-        <!-- Statistics Row -->
+        
         <div class="stats-row">
             <div class="stat-box">
                 <div class="stat-label">Total Funds</div>
@@ -257,7 +257,7 @@
             </div>
         </div>
 
-        <!-- Search and Filter Bar -->
+        
         <div class="search-filter-bar">
             <input type="text" class="search-input" id="searchInput" placeholder=" Search funds by name...">
             <select class="filter-select" id="typeFilter">
@@ -271,9 +271,9 @@
         </div>
 
 
-            @* --- Show user's fund investments (if any) --- *@
+            
  
-        @* --- User Fund Investments (paste here) --- *@
+        
 
         var userInvestments = ViewBag.UserInvestments as List<WebApplication2.Models.FundInvestment> ?? new List<WebApplication2.Models.FundInvestment>();
         const int PRECISION = 4;
@@ -302,7 +302,7 @@
                         <tbody>
                             @foreach (var iv in userInvestments)
                             {
-                                // compute units on the fly (decimal math in Razor)
+
                                 decimal units = 0m;
                                 if (iv.BuyPrice > 0)
                                 {
@@ -332,7 +332,7 @@
 
 
 
-        <!-- Funds Table -->
+        
         <div class="table-card">
             <div class="table-header">
                 <h2>Available Funds (@Model.Count())</h2>
@@ -392,7 +392,7 @@
 </div>
 
 <script>
-    // Search functionality
+
     document.getElementById('searchInput')?.addEventListener('keyup', filterTable);
     document.getElementById('typeFilter')?.addEventListener('change', filterTable);
 

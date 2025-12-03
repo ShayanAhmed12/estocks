@@ -13,7 +13,7 @@
             overflow-x: clip;
         }
 
-        /* Sidebar styling and animation */
+        
         #sidebar {
             width: 250px;
             position: fixed;
@@ -29,7 +29,7 @@
                 transform: translateX(-250px);
             }
 
-        /* Main content area */
+        
         #main-content {
             margin-left: 250px;
             transition: margin-left 0.3s ease-in-out;
@@ -42,7 +42,7 @@
                 margin-left: 0;
             }
 
-        /* Hamburger toggle button - always visible */
+        
         .hamburger-toggle {
             position: fixed;
             top: 15px;
@@ -54,7 +54,7 @@
         }
 
             .hamburger-toggle.shifted {
-                left: 265px; /* 250px sidebar width + 15px padding */
+                left: 265px; 
             }
 
         #sidebarToggle {
@@ -65,15 +65,15 @@
     </style>
 </head>
 <body class="bg-dark text-light">
-    <!-- Overlay for mobile -->
+    
     <div id="sidebar-overlay"></div>
 
-    <!-- Hamburger toggle button - always visible -->
+    
     <button id="hamburgerToggle" class="hamburger-toggle btn btn-outline-primary">
         <span id="hamburgerIcon">☰</span>
     </button>
 
-    <!-- Sidebar -->
+    
     <nav id="sidebar" class="bg-dark text-light p-3 closed">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h3 class="fw-bold m-0">E-Stocks</h3>
@@ -82,7 +82,7 @@
 
         <hr />
 
-        <!-- Main Menu -->
+        
         <ul class="nav flex-column gap-2">
             <li><a class="nav-link text-light" asp-controller="Home" asp-action="Index">Home</a></li>
             <li><a class="nav-link text-light" asp-controller="Stocks" asp-action="Index">Stocks</a></li>
@@ -104,7 +104,7 @@
         </ul>
 
 
-        <!-- Bottom Section -->
+        
         <div class="position-absolute bottom-0 start-0 w-100 p-3">
             <hr />
             @if (User.Identity?.IsAuthenticated == true)
@@ -114,7 +114,7 @@
                     <button class="btn btn-outline-light w-100 mb-2">Logout</button>
                 </form>
 
-                <!-- NEW: Account Dashboard Button -->
+                
                 <a class="btn btn-outline-info w-100 mb-2" asp-controller="Dashboard" asp-action="Index">
                     Account Dashboard
                 </a>
@@ -126,14 +126,14 @@
 
     </nav>
 
-    <!-- Main content area -->
+    
     <div id="main-content" class="expanded">
-        <!-- Page content -->
+        
         <main class="flex-grow-1 p-4" style="margin-top: 60px;">
             @RenderBody()
         </main>
 
-        <!-- Footer -->
+        
         <footer class="mt-auto container text-center text-muted">
             <hr class="my-4" />
             <p class="mb-0">
@@ -156,22 +156,18 @@
             const hamburgerToggle = document.getElementById("hamburgerToggle");
             const hamburgerIcon = document.getElementById("hamburgerIcon");
 
-            // Storage key
             const STORAGE_KEY = 'sidebarClosed';
 
-            // Utility: apply UI according to whether sidebar is closed (true) or open (false)
             function applySidebarState(isClosed) {
                 if (!sidebar || !mainContent || !hamburgerToggle || !hamburgerIcon) return;
 
-                // set class on sidebar
                 if (isClosed) {
                     sidebar.classList.add('closed');
                 } else {
                     sidebar.classList.remove('closed');
                 }
 
-                // reversed behavior:
-                // when sidebar is closed => main content expands (full width)
+
                 if (isClosed) {
                     mainContent.classList.add('expanded');
                     hamburgerToggle.classList.remove('shifted');
@@ -180,21 +176,18 @@
                     hamburgerToggle.classList.add('shifted');
                 }
 
-                // update hamburger icon
                 hamburgerIcon.textContent = isClosed ? '☰' : '✕';
             }
 
-            // Save to localStorage
             function saveSidebarState(isClosed) {
                 try {
                     localStorage.setItem(STORAGE_KEY, isClosed ? '1' : '0');
                 } catch (err) {
-                    // localStorage may be disabled — fail silently
+
                     console.warn('Could not save sidebar state', err);
                 }
             }
 
-            // Read from localStorage; returns boolean or null if not set
             function readSidebarState() {
                 try {
                     const v = localStorage.getItem(STORAGE_KEY);
@@ -205,68 +198,63 @@
                 }
             }
 
-            // Toggle function used by click handlers
             function toggleSidebar() {
                 const isClosedNow = sidebar.classList.contains('closed');
-                // toggle
+
                 const toClosed = !isClosedNow;
                 applySidebarState(toClosed);
                 saveSidebarState(toClosed);
-                // also ensure overlay is hidden for desktop
+
                 overlay.classList.remove('show');
             }
 
-            // Initialize state on load
             function init() {
-                // If a saved state exists, use it. Otherwise keep whatever the DOM markup provides.
+
                 const saved = readSidebarState();
 
                 if (typeof saved === 'boolean') {
                     applySidebarState(saved);
                 } else {
-                    // No saved preference: derive based on existing sidebar class in DOM (fallback)
+
                     const currentlyClosed = sidebar.classList.contains('closed');
                     applySidebarState(currentlyClosed);
                 }
 
-                // Hook up hamburger click
                 if (hamburgerToggle) {
                     hamburgerToggle.addEventListener('click', (e) => {
-                        // For mobile, we still toggle open/close but also show overlay
+
                         if (window.innerWidth < 992) {
-                            // mobile: toggle "open" class and overlay
+
                             if (sidebar.classList.contains('open')) {
                                 sidebar.classList.remove('open');
                                 overlay.classList.remove('show');
-                                // save state: treat mobile 'open' as not closed (false)
+
                                 applySidebarState(true); // keep desktop collapsed layout when mobile closed
                                 saveSidebarState(true);
                             } else {
                                 sidebar.classList.add('open');
                                 overlay.classList.add('show');
-                                // when mobile open, reflect saved state as open = not closed
+
                                 applySidebarState(false);
                                 saveSidebarState(false);
                             }
                         } else {
-                            // desktop: normal toggle that changes layout (and persists)
+
                             toggleSidebar();
                         }
                     });
                 }
 
-                // Mobile close button inside sidebar (the small X)
                 if (sidebarToggle) {
                     sidebarToggle.addEventListener('click', () => {
                         sidebar.classList.remove('open');
                         overlay.classList.remove('show');
-                        // closing mobile preserves the desktop closed state (we save closed = true)
+
                         applySidebarState(true);
                         saveSidebarState(true);
                     });
                 }
 
-                // Close sidebar when clicking overlay (mobile)
                 if (overlay) {
                     overlay.addEventListener('click', () => {
                         sidebar.classList.remove('open');
@@ -276,9 +264,8 @@
                     });
                 }
 
-                // Update on resize: ensure mobile/desktop classes align with saved preference
                 window.addEventListener('resize', () => {
-                    // if switching between mobile/desktop, reapply saved state (so layout remains consistent)
+
                     const savedNow = readSidebarState();
                     if (typeof savedNow === 'boolean') {
                         applySidebarState(savedNow);
@@ -286,14 +273,12 @@
                 });
             }
 
-            // Run init after DOM ready
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', init);
             } else {
                 init();
             }
 
-            // expose for debugging if needed
             window.__estocks_sidebar = {
                 apply: applySidebarState,
                 save: saveSidebarState,
@@ -306,3 +291,4 @@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
+

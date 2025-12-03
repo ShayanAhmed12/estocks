@@ -277,7 +277,7 @@
 
 
 <div class="details-container">
-    <!-- Back Button -->
+    
     @if (TempData["Success"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -299,13 +299,13 @@
         ← Back to All Funds
     </a>
 
-    <!-- Fund Header -->
+    
     <div class="fund-header">
         
         <h1 class="fund-title">@Model.FundName</h1>
         <span class="fund-type-badge">@Model.FundType</span>
 
-        <!-- NAV Highlight -->
+        
         <div class="stats-highlight">
             <div class="stats-highlight-title">Current Net Asset Value</div>
             <div class="stats-highlight-value">@Model.NetAssetValue.ToString("N2") PKR</div>
@@ -313,7 +313,7 @@
         </div>
     </div>
 
-    <!-- Quick Stats Cards -->
+    
     <div class="details-grid">
         <div class="detail-card nav-card">
             <div class="detail-card-title">
@@ -340,7 +340,7 @@
         </div>
     </div>
 
-    <!-- Fund Information -->
+    
     <div class="info-section">
         <h2 class="info-section-title"> Fund Information</h2>
 
@@ -370,7 +370,7 @@
         </div>
     </div>
 
-    <!-- Investment Action Section -->
+    
     <div class="action-section">
         @if (isLoggedIn)
         {
@@ -423,7 +423,7 @@
                                 return;
                             }
                             const rawUnits = amount / nav;
-                            // truncate to precision (round down)
+
                             const factor = Math.pow(10, precision);
                             const units = Math.floor(rawUnits * factor) / factor;
                             est.textContent = units.toFixed(precision);
@@ -438,7 +438,7 @@
         }
         else
         {
-            <!-- Show Login Warning if NOT Logged In -->
+            
             <div class="login-warning">
                 <h3 class="login-warning-title">Login Required</h3>
                 <p class="login-warning-text">
@@ -556,7 +556,7 @@
 
             <div class="fi-stats">
                 @{
-                    // compute totals
+
                     decimal totalAmount = userInvestments.Sum(u => (decimal)u.Amount);
                     decimal totalUnits = 0m;
                     foreach (var inv in userInvestments)
@@ -637,7 +637,7 @@
 
 
 
-    <!-- Additional Info Section -->
+    
     <div class="info-section" style="margin-top: 2rem;">
         <h2 class="info-section-title"> About the Consolidator</h2>
         <div class="info-row">

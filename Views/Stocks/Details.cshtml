@@ -279,9 +279,9 @@
     }
 
     <div class="row">
-        <!-- Left Column: Stock Info & Chart -->
+        
         <div class="col-lg-8">
-            <!-- Stock Header -->
+            
             <div class="details-card">
                 <div class="stock-header">
                     <div>
@@ -296,7 +296,7 @@
                     </div>
                 </div>
 
-                <!-- Stats Grid -->
+                
                 <div class="stats-grid">
                     <div class="stat-box">
                         <div class="stat-label">Previous Close</div>
@@ -321,7 +321,7 @@
                 </div>
             </div>
 
-            <!-- Chart -->
+            
             <div class="chart-container">
                 <h4 class="mb-3" style="color: #1e90ff;">Performance Chart</h4>
                 <div class="period-selector">
@@ -336,7 +336,7 @@
             </div>
         </div>
 
-        <!-- Right Column: Trading Panel -->
+        
         <div class="col-lg-4">
             <div class="trading-panel">
                 <h4 class="mb-4" style="color: #1e90ff;">Trade</h4>
@@ -351,20 +351,20 @@
                         </div>
                     }
 
-                    <!-- Trading Tabs -->
+                    
                     <div class="trading-tabs">
                         <button class="tab-btn active" data-tab="spot">Spot Trade</button>
                         <button class="tab-btn" data-tab="future">Future Trade</button>
                     </div>
 
-                    <!-- Spot Trade Form -->
+                    
                     <div id="spotTradeForm" class="trade-form active">
                         <div class="mb-4">
                             <h5 style="color: #e9eef2;">Spot Trading</h5>
                             <p class="text-muted small">Buy or sell immediately at current market price</p>
                         </div>
 
-                        <!-- Buy Form -->
+                        
                         <form asp-action="BuySpot" method="post" class="mb-3">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="symbol" value="@Model.Symbol" />
@@ -392,13 +392,13 @@
 
                         <hr style="border-color: #1c2a3d;">
 
-                        <!-- owned shares -->
+                        
                         <div class="alert alert-info mb-3">
                             <strong>Your Holdings:</strong> @ViewBag.OwnedQuantity shares
                         </div>
 
 
-                        <!-- Sell Form -->
+                        
                         <form asp-action="SellSpot" method="post">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="symbol" value="@Model.Symbol" />
@@ -425,7 +425,7 @@
                         </form>
                     </div>
 
-                    <!-- Future Trade Form -->
+                    
                     <div id="futureTradeForm" class="trade-form">
                         <div class="mb-4">
                             <h5 style="color: #e9eef2;">Future Trading</h5>
@@ -493,7 +493,6 @@
     <script>
         const currentPrice = @Model.CurrentPrice;
 
-        // Trading tabs
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const tab = this.getAttribute('data-tab');
@@ -506,21 +505,18 @@
             });
         });
 
-        // Calculate buy cost
         function calculateBuyCost() {
             const quantity = document.getElementById('buyQuantity').value || 0;
             const total = quantity * currentPrice;
             document.getElementById('totalBuyCost').textContent = total.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 1}) + ' PKR';
         }
 
-        // Calculate sell revenue
         function calculateSellRevenue() {
             const quantity = document.getElementById('sellQuantity').value || 0;
             const total = quantity * currentPrice;
             document.getElementById('totalSellRevenue').textContent = total.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 1}) + ' PKR';
         }
 
-        // Calculate future cost
         function calculateFutureCost() {
             const quantity = document.getElementById('futureQuantity').value || 0;
             const total = quantity * currentPrice;
@@ -529,7 +525,6 @@
              document.getElementById('totalMarginCost').textContent = margin.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 1}) + ' PKR';
         }
 
-        // Chart data
         const historicalData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(historicalData));
 
         const chartData = {
@@ -547,7 +542,6 @@
             }]
         };
 
-        // Create chart
         const ctx = document.getElementById('stockChart').getContext('2d');
         const stockChart = new Chart(ctx, {
             type: 'line',
@@ -599,7 +593,6 @@
             }
         });
 
-        // Period selector - reload page with new period
         document.querySelectorAll('.period-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const period = this.getAttribute('data-period');
