@@ -19,7 +19,6 @@ namespace WebApplication2.Controllers
             _context = context;
         }
 
-        // GET: /Dashboard/Index
         public async Task<IActionResult> Index()
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -35,7 +34,6 @@ namespace WebApplication2.Controllers
 
             if (user == null) return NotFound();
 
-            // summary counts (simple)
             ViewBag.OrdersCount = user.Orders?.Count ?? 0;
             ViewBag.FundInvestmentsCount = user.FundInvestments?.Count ?? 0;
             ViewBag.DividendsCount = user.Dividends?.Count ?? 0;
@@ -45,7 +43,6 @@ namespace WebApplication2.Controllers
             return View(user);
         }
 
-        // POST: /Dashboard/ChangePassword
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangePassword(string currentPassword, string newPassword, string confirmPassword)
@@ -69,7 +66,7 @@ namespace WebApplication2.Controllers
             var user = await _context.Users.FirstOrDefaultAsync(u => u.UserId == userId);
             if (user == null) return NotFound();
 
-            // NOTE: if you store hashed passwords, replace this check with proper verification
+         
             if (user.Password != currentPassword)
             {
                 TempData["Error"] = "Current password is incorrect.";
@@ -84,7 +81,7 @@ namespace WebApplication2.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // POST: /Dashboard/ChangeEmail
+    
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangeEmail(string newEmail, string confirmPassword)
@@ -108,7 +105,7 @@ namespace WebApplication2.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // Optionally: check uniqueness of email
+        
             var exists = await _context.Users.AnyAsync(u => u.Email == newEmail && u.UserId != userId);
             if (exists)
             {
@@ -124,7 +121,7 @@ namespace WebApplication2.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // POST: /Dashboard/Deactivate
+   
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Deactivate(string confirmPassword)
@@ -142,19 +139,19 @@ namespace WebApplication2.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // Set active flag to false (0)
+
             user.ActiveUser = false;
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
 
-            // Sign out the user and redirect to login (or home)
+          
             await HttpContext.SignOutAsync();
 
             TempData["Success"] = "Your account has been deactivated. We're sorry to see you go.";
             return RedirectToAction("Login", "Users");
         }
 
-        // GET: /Dashboard/Billing
+      
         public async Task<IActionResult> Billing()
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -162,7 +159,7 @@ namespace WebApplication2.Controllers
                 return RedirectToAction("Login", "Users");
 
             var user = await _context.Users
-                .Include(u => u.Banks) // assuming User has a navigation property ICollection<Bank> Banks
+                .Include(u => u.Banks) 
                 .FirstOrDefaultAsync(u => u.UserId == userId);
 
             if (user == null) return NotFound();
@@ -204,7 +201,7 @@ namespace WebApplication2.Controllers
 
 
 
-        // POST: /Dashboard/DeleteBank
+   
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteBank(int bankId, string confirmPassword)
@@ -216,7 +213,6 @@ namespace WebApplication2.Controllers
             var user = await _context.Users.FirstOrDefaultAsync(u => u.UserId == userId);
             if (user == null) return NotFound();
 
-            // Verify password
             if (user.Password != confirmPassword)
             {
                 TempData["Error"] = "Password is incorrect. Bank record was not deleted.";

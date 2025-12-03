@@ -19,14 +19,14 @@ namespace WebApplication2.Controllers
             _context = context;
         }
 
-        // GET: /Users
+     
         public async Task<IActionResult> Index()
         {
             var list = await _context.Users.ToListAsync();
             return View(list);
         }
 
-        // GET: /Users/Details/5
+
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
@@ -35,14 +35,13 @@ namespace WebApplication2.Controllers
             return View(user);
         }
 
-        // GET: /Users/Register (renamed view)
         [AllowAnonymous]
         public IActionResult Register()
         {
             return View("Register");
         }
 
-        // GET: /Users/Create (kept for compatibility; shows register view)
+   
         [AllowAnonymous]
         public IActionResult Create()
         {
@@ -59,20 +58,19 @@ namespace WebApplication2.Controllers
                 return View("Register", user);
             }
 
-            // ensure unique email
+  
             if (await _context.Users.AnyAsync(u => u.Email == user.Email))
             {
                 ModelState.AddModelError(nameof(user.Email), "Email is already registered.");
                 return View("Register", user);
             }
 
-            // force ActiveUser = true
             user.ActiveUser = true;
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            // sign in the new user (unchanged)
+    
             var claims = new List<Claim>
     {
         new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
@@ -97,7 +95,7 @@ namespace WebApplication2.Controllers
         }
 
 
-        // GET: /Users/Edit/5
+ 
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
@@ -106,7 +104,7 @@ namespace WebApplication2.Controllers
             return View(user);
         }
 
-        // POST: /Users/Edit/5
+  
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("UserId,Name,Email,Password,Cnic,PhoneNum,ActiveUser")] User user)
@@ -134,7 +132,7 @@ namespace WebApplication2.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: /Users/Delete/5
+   
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
@@ -143,7 +141,7 @@ namespace WebApplication2.Controllers
             return View(user);
         }
 
-        // POST: /Users/Delete/5
+
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -162,7 +160,6 @@ namespace WebApplication2.Controllers
             return await _context.Users.AnyAsync(e => e.UserId == id);
         }
 
-        // GET: /Users/Login
         [AllowAnonymous]
         public IActionResult Login()
         {
@@ -188,11 +185,11 @@ namespace WebApplication2.Controllers
             }
 
 
-            // Check if account is active
+    
             if (!user.ActiveUser)
             {
                 TempData["AccountDeactivated"] = "true";
-                return RedirectToAction("Login"); // redirect to login page
+                return RedirectToAction("Login"); 
             }
 
 
@@ -220,7 +217,6 @@ namespace WebApplication2.Controllers
         }
 
 
-        // POST: /Users/Logout
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
@@ -230,7 +226,7 @@ namespace WebApplication2.Controllers
         }
     }
 
-    // Simple DTO for login request
+
     public class LoginRequest
     {
         public string Email { get; set; } = string.Empty;

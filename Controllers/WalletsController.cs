@@ -19,27 +19,26 @@ namespace WebApplication2.Controllers
             _context = context;
         }
 
-        // GET: Wallets/Index
+  
         public async Task<IActionResult> Index()
         {
-            // Check if user is authenticated
+          
             if (!User.Identity.IsAuthenticated)
             {
                 return RedirectToAction("Login", "Users");
             }
 
-            // Get the current user's ID from claims
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
             {
                 return RedirectToAction("Login", "Users");
             }
 
-            // Get user with wallet, stocks and banks
+  
             var user = await _context.Users
                 .Include(u => u.Wallets)
                 .Include(u => u.Stocks)
-                .Include(u => u.Banks) // include banks
+                .Include(u => u.Banks) 
                 .FirstOrDefaultAsync(u => u.UserId == userId);
 
             if (user == null)
@@ -47,10 +46,10 @@ namespace WebApplication2.Controllers
                 return NotFound();
             }
 
-            // Provide user's banks to the view (may be empty)
+       
             ViewBag.UserBanks = user.Banks?.ToList() ?? new List<Bank>();
 
-            // Get or create wallet for user
+          
             var wallet = await _context.Wallets.FirstOrDefaultAsync(w => w.UserId == userId);
             if (wallet == null)
             {
@@ -64,20 +63,20 @@ namespace WebApplication2.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            // Calculate portfolio values and stock quantities
+   
             double totalInvestment = 0;
             double currentValue = 0;
             var stockQuantities = new Dictionary<int, int>();
             var ownedStocksList = new List<Stock>();
 
-            // Get all user's stocks
+  
             var allUserStocks = await _context.Stocks
                 .Where(s => s.UserId == userId)
                 .ToListAsync();
 
             foreach (var stock in allUserStocks)
             {
-                // Get total quantity owned (buy orders - sell orders)
+         
                 var buyQuantity = await _context.Orders
                     .Where(o => o.UserId == userId && o.StockId == stock.StockId && o.OrderType == "spot_buy")
                     .SumAsync(o => (int?)o.Quantity) ?? 0;
@@ -89,12 +88,12 @@ namespace WebApplication2.Controllers
                 int ownedQuantity = buyQuantity - sellQuantity;
                 stockQuantities[stock.StockId] = ownedQuantity;
 
-                // Only include stocks with positive owned quantity
+              
                 if (ownedQuantity > 0)
                 {
                     ownedStocksList.Add(stock);
 
-                    // Calculate investment and current value
+                   
                     var buyOrders = await _context.Orders
                         .Where(o => o.UserId == userId && o.StockId == stock.StockId && o.OrderType == "spot_buy")
                         .ToListAsync();
@@ -117,17 +116,17 @@ namespace WebApplication2.Controllers
                 }
             }
 
-            // Calculate profit/loss
+         
             double profitLoss = currentValue - totalInvestment;
 
-            // Get user's active future positions
+       
             var futureTradings = await _context.FutureTradings
                 .Include(ft => ft.Contract)
                     .ThenInclude(c => c.Stock)
                 .Where(ft => ft.UserId == userId)
                 .ToListAsync();
 
-            // Calculate futures P&L
+   
             double futuresMarginHeld = 0;
             double futuresCurrentValue = 0;
 
@@ -142,20 +141,19 @@ namespace WebApplication2.Controllers
                 {
                     futuresCurrentValue += (currentStockPrice - ft.Price) * ft.Quantity;
                 }
-                else // SHORT
+                else 
                 {
                     futuresCurrentValue += (ft.Price - currentStockPrice) * ft.Quantity;
                 }
             }
 
-            // Pass calculated values to view
             ViewBag.TotalInvestment = (int)totalInvestment;
             ViewBag.CurrentValue = (int)currentValue;
             ViewBag.ProfitLoss = (int)profitLoss;
             ViewBag.UserStocks = ownedStocksList;
             ViewBag.StockQuantities = stockQuantities;
 
-            // Futures data
+      
             ViewBag.FutureTradings = futureTradings;
             ViewBag.FuturesMarginHeld = (int)futuresMarginHeld;
             ViewBag.FuturesUnrealizedPL = (int)futuresCurrentValue;
@@ -163,7 +161,7 @@ namespace WebApplication2.Controllers
             return View(wallet);
         }
 
-        // POST: Wallets/AddFunds
+      
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddFunds(int amount, int? bankId)
@@ -185,7 +183,7 @@ namespace WebApplication2.Controllers
                 return RedirectToAction("Index");
             }
 
-            // Ensure user has banks and selected a bank
+     
             var userBanks = await _context.Banks.Where(b => b.UserId == userId).ToListAsync();
             if (userBanks == null || userBanks.Count == 0)
             {
@@ -226,7 +224,7 @@ namespace WebApplication2.Controllers
                 _context.Wallets.Update(wallet);
             }
 
-            // Optionally record a transaction referencing this add-funds event
+       
             var tx = new Transaction
             {
                 WalletId = wallet.WalletId,
@@ -239,7 +237,7 @@ namespace WebApplication2.Controllers
 
             await _context.SaveChangesAsync();
 
-            // Mask account number display for privacy
+     
             string acctDisplay = bank.AccountNumber.ToString();
             if (acctDisplay.Length > 4)
             {
@@ -264,14 +262,14 @@ namespace WebApplication2.Controllers
                 return RedirectToAction("Login", "Users");
             }
 
-            // Validate amount
+   
             if (amount <= 0)
             {
                 TempData["Error"] = "Please enter a valid amount greater than 0.";
                 return RedirectToAction("Index");
             }
 
-            // Get wallet
+         
             var wallet = await _context.Wallets.FirstOrDefaultAsync(w => w.UserId == userId);
             if (wallet == null)
             {
@@ -279,14 +277,13 @@ namespace WebApplication2.Controllers
                 return RedirectToAction("Index");
             }
 
-            // Check if user has enough balance
             if (wallet.Balance < amount)
             {
                 TempData["Error"] = "Insufficient balance.";
                 return RedirectToAction("Index");
             }
 
-            // Ensure user has banks
+   
             var userBanks = await _context.Banks.Where(b => b.UserId == userId).ToListAsync();
             if (userBanks == null || userBanks.Count == 0)
             {
@@ -294,7 +291,7 @@ namespace WebApplication2.Controllers
                 return RedirectToAction("Index");
             }
 
-            // Ensure bank is selected
+         
             if (!bankId.HasValue)
             {
                 TempData["Error"] = "Please select a bank to withdraw funds into.";
@@ -308,7 +305,7 @@ namespace WebApplication2.Controllers
                 return RedirectToAction("Index");
             }
 
-            // Deduct balance
+         
             wallet.Balance -= amount;
             wallet.LastUpdated = DateTime.Now;
 
